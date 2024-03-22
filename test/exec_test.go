@@ -1,0 +1,16 @@
+package test
+
+import (
+	"fmt"
+	"os/exec"
+	"testing"
+)
+
+func TestExec(t *testing.T) {
+	cmd := exec.Command("cmake")
+	out, err := cmd.Output()
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(string(out))
+}
