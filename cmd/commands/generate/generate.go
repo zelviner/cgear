@@ -1,15 +1,17 @@
 package generate
 
 import (
+	"fmt"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"os"
+	path "path/filepath"
+
 	"zel/cmd/commands"
 	"zel/cmd/commands/version"
 	"zel/generate"
 	"zel/logger"
 	"zel/utils"
-
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 var CmdGenerate = &commands.Command{
@@ -82,5 +84,13 @@ func GenerateCode(cmd *commands.Command, args []string) int {
 }
 
 func include(cmd *commands.Command, args []string, currPath string) {
-	utils.IsZelProject(currPath)
+	if !utils.IsZelProject(currPath) {
+		logger.Log.Fatal("not zel project")
+	}
+
+	output := cmd.Out()
+
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(currPath, "include")+string(path.Separator), "\x1b[0m")
+	os.MkdirAll(path.Join(currPath, "include"), 0755)
+
 }

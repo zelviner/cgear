@@ -86,9 +86,7 @@ func CreateProject(cmd *commands.Command, args []string) int {
 			os.Exit(2)
 		}
 	}
-
 	logger.Log.Info("Creating C++ project...")
-	logger.Log.Infof("project path: %s", projectPath)
 
 	// 创建C++项目所需文件夹
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", projectPath+string(path.Separator), "\x1b[0m")
@@ -111,6 +109,10 @@ func CreateProject(cmd *commands.Command, args []string) int {
 	utils.WriteToFile(path.Join(projectPath, ".clang-format"), clangFormat)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(projectPath, "run.bat"), "\x1b[0m")
 	utils.WriteToFile(path.Join(projectPath, "run.bat"), runBat)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(projectPath, "src", "CMakeLists.txt"), "\x1b[0m")
+	utils.WriteToFile(path.Join(projectPath, "src", "CMakeLists.txt"), runBat)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(projectPath, "test", "CMakeLists.txt"), "\x1b[0m")
+	utils.WriteToFile(path.Join(projectPath, "test", "CMakeLists.txt"), runBat)
 
 	return 0
 }

@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"testing"
 )
@@ -13,4 +14,8 @@ func TestExec(t *testing.T) {
 		t.Error(err)
 	}
 	fmt.Println(string(out))
+
+	val := os.Getenv("CPATH")
+	fmt.Println(val)
+
 }

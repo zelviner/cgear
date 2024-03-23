@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"text/template"
 	"time"
@@ -44,6 +45,12 @@ func IsExist(path string) bool {
 
 // 检查当前路径是否为 Zel tool 生成的 C++ 项目
 func IsZelProject(thePath string) bool {
+	cmakeListsFiles := []string{
+		thePath + `\CMakeLists.txt`,
+		thePath + `\src\CMakeLists.txt`,
+		thePath + `\test\CMakeLists.txt`,
+	}
+
 	files := []string{}
 
 	c := make(chan error)
@@ -53,23 +60,23 @@ func IsZelProject(thePath string) bool {
 			if err != nil {
 				return err
 			}
-			// c <- f.Name()
-			files = append(files, f.Name())
-			// logger.Log.Info(f.Name())
+
+			if f.Name() == "CMakeLists.txt" {
+				files = append(files, fpath)
+			}
+
 			return nil
 		})
 		close(c)
 	}()
 
 	if path := <-c; path == nil {
-		for _, file := range files {
-			// logger.Log.Error("1111")
-			logger.Log.Info("hahahahah " + file)
+		if reflect.DeepEqual(cmakeListsFiles, files) {
+			return true
 		}
-
 	}
 
-	return true
+	return false
 }
 
 // askForConfirmation 使用Scanln解析用户输入。
