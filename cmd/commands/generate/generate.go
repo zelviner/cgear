@@ -104,5 +104,5 @@ func docs(cmd *commands.Command, args []string, currPath string) {
 	// 	logger.Log.Fatal("not zel project")
 	// }
 
-	generate.GenerateMd("src_docs.md", currPath)
+	generate.SrcToDocx("source.docx", currPath)
 }
