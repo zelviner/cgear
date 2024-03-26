@@ -2,10 +2,11 @@ package generate
 
 import (
 	"fmt"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"os"
 	path "path/filepath"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"zel/cmd/commands"
 	"zel/cmd/commands/version"
@@ -74,6 +75,9 @@ func GenerateCode(cmd *commands.Command, args []string) int {
 	case "include":
 		include(cmd, args, currPath)
 
+	case "docs":
+		docs(cmd, args, currPath)
+
 	default:
 		logger.Log.Fatal("Command is missing")
 	}
@@ -93,4 +97,12 @@ func include(cmd *commands.Command, args []string, currPath string) {
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(currPath, "include")+string(path.Separator), "\x1b[0m")
 	os.MkdirAll(path.Join(currPath, "include"), 0755)
 
+}
+
+func docs(cmd *commands.Command, args []string, currPath string) {
+	// if !utils.IsZelProject(currPath) {
+	// 	logger.Log.Fatal("not zel project")
+	// }
+
+	generate.GenerateMd("src_docs.md", currPath)
 }

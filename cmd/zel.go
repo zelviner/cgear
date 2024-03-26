@@ -4,6 +4,8 @@ import (
 	"zel/cmd/commands"
 	_ "zel/cmd/commands/generate"
 	_ "zel/cmd/commands/new"
+	_ "zel/cmd/commands/pack"
+	_ "zel/cmd/commands/test"
 	_ "zel/cmd/commands/version"
 	"zel/utils"
 )

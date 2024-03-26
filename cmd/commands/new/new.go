@@ -27,10 +27,10 @@ var CmdNew = &commands.Command{
             ├── run.bat
             ├── {{"src"|foldername}}
             │     └── CMakeLists.txt
-            │     └── {{"Mode"|foldername}}
-            |          └── mode.cpp
-            |          └── mode.h
-            ├── {{"test"|foldername}}
+            │     └── {{"Utils"|foldername}}
+            |          └── utils.cpp
+            |          └── utils.h
+            ├── {{"tests"|foldername}}
             │     └── CMakeLists.txt
             │     └── test.cpp
             ├── {{"vendor"|foldername}}
