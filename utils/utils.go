@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -167,6 +168,33 @@ func WriteToFile(filename string, content string) {
 
 	_, err = f.WriteString(content)
 	MustCheck(err)
+}
+
+// 去除文件中的空行
+func FileTrim(filename string) (content string) {
+	// 打开文件
+	file, err := os.Open(filename)
+	if err != nil {
+		logger.Log.Fatalf("无法打开文件: %s", err)
+		return
+	}
+	defer file.Close()
+
+	// 逐行读取文件内容并去除空行
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line != "" {
+			content += line + "\n"
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		logger.Log.Fatalf("扫描文件时出错: %s", err)
+		return
+	}
+
+	return
 }
 
 // 尝试关闭传递的文件, 如果出错 panic
