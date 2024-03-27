@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"zel/logger"
+	"github.com/ZEL-30/zel/logger"
 )
 
 const confVer = 0

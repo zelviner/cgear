@@ -5,8 +5,8 @@ import (
 	"os"
 	path "path/filepath"
 
-	"zel/cmd/commands"
-	"zel/logger"
+	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/logger"
 )
 
 var CmdPack = &commands.Command{

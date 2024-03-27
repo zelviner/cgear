@@ -6,11 +6,11 @@ import (
 	path "path/filepath"
 	"strings"
 
-	"zel/cmd/commands"
-	"zel/cmd/commands/version"
-	"zel/logger"
-	"zel/logger/colors"
-	"zel/utils"
+	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/cmd/commands/version"
+	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/logger/colors"
+	"github.com/ZEL-30/zel/utils"
 )
 
 var qt utils.DocValue

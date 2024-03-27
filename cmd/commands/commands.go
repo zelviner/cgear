@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"zel/logger/colors"
-	"zel/utils"
+	"github.com/ZEL-30/zel/logger/colors"
+	"github.com/ZEL-30/zel/utils"
 )
 
 // command 是一个执行单位

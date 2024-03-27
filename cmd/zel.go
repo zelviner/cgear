@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"zel/cmd/commands"
-	_ "zel/cmd/commands/generate"
-	_ "zel/cmd/commands/new"
-	_ "zel/cmd/commands/pack"
-	_ "zel/cmd/commands/test"
-	_ "zel/cmd/commands/version"
-	"zel/utils"
+	"github.com/ZEL-30/zel/cmd/commands"
+	_ "github.com/ZEL-30/zel/cmd/commands/generate"
+	_ "github.com/ZEL-30/zel/cmd/commands/new"
+	_ "github.com/ZEL-30/zel/cmd/commands/pack"
+	_ "github.com/ZEL-30/zel/cmd/commands/test"
+	_ "github.com/ZEL-30/zel/cmd/commands/version"
+	"github.com/ZEL-30/zel/utils"
 )
 
 func IfGenerateDocs(name string, args []string) bool {

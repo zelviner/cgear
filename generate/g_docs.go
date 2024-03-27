@@ -7,9 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"zel/logger"
-
 	"github.com/ErmaiSoft/GoOpenXml/word"
+	"github.com/ZEL-30/zel/logger"
 )
 
 type FileInfo struct {
@@ -44,7 +43,7 @@ func GetParagraph(currPath string) (paragraph []word.Paragraph) {
 			defer file.Close()
 
 			font := word.Font{Family: "Consolas", Size: 10, Bold: false, Color: "000000"} //字体
-			lineSeting := word.Line{Rule: word.LineRuleAuto, Height: 1}                   //行高、行间距、首行缩进
+			lineSeting := word.Line{Rule: word.LineRuleAuto, Before: 0, After: 0}         //行高、行间距、首行缩进
 
 			// 逐行读取文件内容
 			scanner := bufio.NewScanner(file)

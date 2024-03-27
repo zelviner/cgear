@@ -3,7 +3,8 @@ package tests
 import (
 	"fmt"
 	"testing"
-	"zel/utils"
+
+	"github.com/ZEL-30/zel/utils"
 )
 
 func TestFileTrim(t *testing.T) {

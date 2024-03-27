@@ -1,4 +1,4 @@
-module zel
+module github.com/ZEL-30/zel
 
 go 1.20
 

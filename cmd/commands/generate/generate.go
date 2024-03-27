@@ -8,11 +8,11 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"zel/cmd/commands"
-	"zel/cmd/commands/version"
-	"zel/generate"
-	"zel/logger"
-	"zel/utils"
+	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/cmd/commands/version"
+	"github.com/ZEL-30/zel/generate"
+	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/utils"
 )
 
 var CmdGenerate = &commands.Command{
@@ -100,9 +100,9 @@ func include(cmd *commands.Command, args []string, currPath string) {
 }
 
 func docs(cmd *commands.Command, args []string, currPath string) {
-	// if !utils.IsZelProject(currPath) {
-	// 	logger.Log.Fatal("not zel project")
-	// }
+	if !utils.IsZelProject(currPath) {
+		logger.Log.Fatal("not zel project")
+	}
 
 	generate.SrcToDocx("source.docx", currPath)
 }

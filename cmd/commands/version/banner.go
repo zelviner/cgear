@@ -6,8 +6,8 @@ import (
 	"text/template"
 	"time"
 
-	"zel/logger"
-	"zel/utils"
+	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/utils"
 )
 
 // RuntimeInfo 保存有关当前运行时的信息

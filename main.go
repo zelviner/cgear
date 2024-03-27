@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	"zel/cmd"
-	"zel/cmd/commands"
-	"zel/config"
-	"zel/utils"
+	"github.com/ZEL-30/zel/cmd"
+	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/config"
+	"github.com/ZEL-30/zel/utils"
 )
 
 func main() {

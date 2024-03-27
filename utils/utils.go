@@ -9,14 +9,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"text/template"
 	"time"
 
-	"zel/internal/pkg/system"
-	"zel/logger"
-	"zel/logger/colors"
+	"github.com/ZEL-30/zel/internal/pkg/system"
+	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/logger/colors"
 )
 
 type Repos struct {
@@ -51,33 +50,27 @@ func IsZelProject(thePath string) bool {
 		thePath + `\src\CMakeLists.txt`,
 		thePath + `\tests\CMakeLists.txt`,
 	}
+	var files string
 
-	files := []string{}
+	filepath.Walk(thePath, func(fpath string, f os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-	c := make(chan error)
+		if f.Name() == "CMakeLists.txt" {
+			files += fpath + ","
+		}
 
-	go func() {
-		filepath.Walk(thePath, func(fpath string, f os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
+		return nil
+	})
 
-			if f.Name() == "CMakeLists.txt" {
-				files = append(files, fpath)
-			}
-
-			return nil
-		})
-		close(c)
-	}()
-
-	if path := <-c; path == nil {
-		if reflect.DeepEqual(cmakeListsFiles, files) {
-			return true
+	for _, file := range cmakeListsFiles {
+		if ok := strings.Index(files, file); ok == -1 {
+			return false
 		}
 	}
 
-	return false
+	return true
 }
 
 // askForConfirmation 使用Scanln解析用户输入。

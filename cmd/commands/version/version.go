@@ -9,10 +9,10 @@ import (
 	"os"
 	"runtime"
 
-	"zel/cmd/commands"
-	"zel/config"
-	"zel/logger"
-	"zel/logger/colors"
+	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/config"
+	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/logger/colors"
 )
 
 const verboseVersionBanner string = `%s%s _____     _ 
