@@ -82,6 +82,7 @@ func packProject(cmd *commands.Command, args []string) int {
 	if err != nil {
 		logger.Log.Fatalf("Wrong project path: %s", projectPath)
 	}
+
 	if stat, err := os.Stat(thePath); os.IsNotExist(err) || !stat.IsDir() {
 		logger.Log.Fatalf("Project path does not exist: %s", thePath)
 	}

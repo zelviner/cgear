@@ -37,7 +37,7 @@ type Command struct {
 	output *io.Writer
 }
 
-// 可用的命令切片
+// 可用的命令
 var AvailableCommands = []*Command{}
 
 // 命令使用说明
