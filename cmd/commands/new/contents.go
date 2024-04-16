@@ -1,34 +1,5 @@
 package new
 
-var projectCmakeList = `# 最低版本
-cmake_minimum_required(VERSION 3.20.2) 
-
-# 设置项目名称
-project({{.ProjectName}})
-
-# 采用C++17标准
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-if(MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
-    # Specify MSVC UTF-8 encoding   
-    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")    
-endif()
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-
-# 添加子工程
-add_subdirectory(vendor)
-add_subdirectory(src)
-add_subdirectory(test)
-`
-
 var clangFormat = `# Run manually to reformat a file:
 # clang-format -i --style=file <file>
 
@@ -125,9 +96,91 @@ if %ERRORLEVEL%==0 (
 endlocal
 `
 
-var utilsHeader = `
+var projectCmakeLists = `# 最低版本
+cmake_minimum_required(VERSION 3.20.2) 
+
+# 设置项目名称
+project({{.ProjectName}})
+
+# 采用C++11标准
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
+    # Specify MSVC UTF-8 encoding   
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")    
+endif()
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
+# 添加子工程
+add_subdirectory(vendor)
+add_subdirectory(src)
+add_subdirectory(tests)
+`
+
+var srcCmakeLists = `# 查找源文件
+file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
+
+# 查找头文件
+file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.h)
+
+#  编译静态库
+add_library(${PROJECT_NAME} "")
+
+target_sources(${PROJECT_NAME}
+PRIVATE
+    ${SOURCES}
+PUBLIC
+    ${HEADERS}
+)
+
+# 添加头文件
+target_include_directories(${PROJECT_NAME}
+PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}
+   
+)
+
+# 为target添加库文件目录
+target_link_directories(${PROJECT_NAME}
+PUBLIC
+  
+)
+
+
+
+# 为target添加需要链接的共享库
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+PUBLIC
+   
+)
+
+# 添加自定义命令，用于复制静态库文件到指定目录
+# add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E copy
+#         $<TARGET_FILE:${PROJECT_NAME}>
+#         "填写要发送的路径 如: D:/Workspaces/C++/Vendor/xhlanguage/lib"
+#     COMMENT "Copying ${PROJECT_NAME} static library to destination directory"
+# )
+
 
 `
 
-var utilsCPP = `
+var vendorCmakeLists = `
+`
+
+var testsCmakeLists = `
+`
+
+var utilsHeader = `#pragma once
+`
+
+var utilsCPP = `#include "utils.h"
 `
