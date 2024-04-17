@@ -24,12 +24,14 @@ var CmdNew = &commands.Command{
 
             ├── CMakeLists.txt
             ├── .clang-format
-            ├── run.bat
+            ├── .build.bat
+            ├── README.md
             ├── {{"src"|foldername}}
             │     └── CMakeLists.txt
-            │     └── {{"Utils"|foldername}}
+            │     └── {{"utils"|foldername}}
             |          └── utils.cpp
             |          └── utils.h
+            │     └── main.cpp
             ├── {{"tests"|foldername}}
             │     └── CMakeLists.txt
             │     └── test.cpp
@@ -107,8 +109,10 @@ func CreateProject(cmd *commands.Command, args []string) int {
 	utils.WriteToFile(path.Join(projectPath, "CMakeLists.txt"), strings.Replace(projectCmakeLists, "{{.ProjectName}}", path.Base(args[0]), -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(projectPath, ".clang-format"), "\x1b[0m")
 	utils.WriteToFile(path.Join(projectPath, ".clang-format"), clangFormat)
-	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(projectPath, "run.bat"), "\x1b[0m")
-	utils.WriteToFile(path.Join(projectPath, "run.bat"), runBat)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(projectPath, "build.bat"), "\x1b[0m")
+	utils.WriteToFile(path.Join(projectPath, "build.bat"), buildBat)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(projectPath, "README.md"), "\x1b[0m")
+	utils.WriteToFile(path.Join(projectPath, "README.md"), strings.Replace(readme, "{{.ProjectName}}", path.Base(args[0]), -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(projectPath, "src", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(path.Join(projectPath, "src", "CMakeLists.txt"), srcCmakeLists)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", path.Join(projectPath, "src/utils", "utils.h"), "\x1b[0m")

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/ZEL-30/zel/cmd/commands"
+	_ "github.com/ZEL-30/zel/cmd/commands/build"
 	_ "github.com/ZEL-30/zel/cmd/commands/generate"
 	_ "github.com/ZEL-30/zel/cmd/commands/new"
 	_ "github.com/ZEL-30/zel/cmd/commands/pack"

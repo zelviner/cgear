@@ -2,6 +2,7 @@ package run
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/ZEL-30/zel/cmd/commands"
@@ -52,6 +53,15 @@ func RunApp(cmd *commands.Command, args []string) int {
 	appName = filepath.Base(appPath)
 
 	logger.Log.Infof("Using '%s' as 'appname'", appName)
+
+	execmd := exec.Command(".\\.build.bat", appName)
+	execmd.Stdout = os.Stdout
+	execmd.Stderr = os.Stderr
+	err := execmd.Run()
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
 	return 0
 
 }

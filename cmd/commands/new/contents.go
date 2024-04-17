@@ -31,7 +31,10 @@ SpaceAfterCStyleCast: true  #括号后添加空格
 TabWidth: 4  #tab键盘的宽度
 `
 
-var runBat = `@echo off
+var readme = `# {{.ProjectName}}
+`
+
+var buildBat = `@echo off
 setlocal
 
 rem 避免中文乱码
@@ -77,22 +80,6 @@ rem 使用 CMake 生成项目文件
 rem 使用 Ninja 进行编译
 ninja
 
-rem 如果编译成功，运行生成的可执行文件
-if %ERRORLEVEL%==0 (
-    rem 清空屏幕
-    cls
-    rem 进入可执行文件所在目录
-    cd ..\%EXECUTABLE_PATH%
-    echo Running %EXECUTABLE_NAME% ...
-    echo.
-    %EXECUTABLE_NAME%
-    echo.
-    echo Process exited with code %ERRORLEVEL%
-) else (
-    echo.
-    echo Build failed!
-    echo.
-)
 endlocal
 `
 

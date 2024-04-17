@@ -21,9 +21,7 @@ Run command will supervise the filesystem of the application for any changes, an
 
 var (
 	projectPath string
-	// Project path
-	currPath string
-	// Project name
+	currPath    string
 	projectName string
 )
 
