@@ -54,7 +54,7 @@ func RunApp(cmd *commands.Command, args []string) int {
 
 	logger.Log.Infof("Using '%s' as 'appname'", appName)
 
-	execmd := exec.Command(".\\.build.bat", appName)
+	execmd := exec.Command(".\\run.bat", appName)
 	execmd.Stdout = os.Stdout
 	execmd.Stderr = os.Stderr
 	err := execmd.Run()

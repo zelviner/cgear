@@ -1,8 +1,8 @@
 package build
 
 import (
+	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/ZEL-30/zel/cmd/commands"
@@ -47,13 +47,38 @@ func BuildApp(cmd *commands.Command, args []string) int {
 
 	logger.Log.Infof("Using '%s' as 'appname'", appName)
 
-	execmd := exec.Command(".\\build.bat", appName)
-	execmd.Stdout = os.Stdout
-	execmd.Stderr = os.Stderr
-	err := execmd.Run()
-	if err != nil {
-		logger.Log.Fatal(err.Error())
-	}
+	args = append([]string{appName}, args...)
+	build(args)
 
 	return 0
+}
+
+func build(args []string) {
+
+	if len(args) == 0 {
+		logger.Log.Fatal("Please provide the executable file name as an argument. For example: .\run.bat hello")
+	}
+
+	var (
+		buildDir       = "build"
+		executablePath = "bin"
+		executableName = fmt.Sprintf("%s.exe", args[0])
+	// vsPath
+	)
+
+	logger.Log.Infof("%s, %s, %s", buildDir, executablePath, executableName)
+
+	// works, err := os.Stat("C:/Workspaces")
+	// if err != nil {
+	// 	logger.Log.Error("file not found")
+	// }
+
+	// execmd := exec.Command(".\\build.bat", appName)
+	// execmd.Stdout = os.Stdout
+	// execmd.Stderr = os.Stderr
+	// err := execmd.Run()
+	// if err != nil {
+	// 	logger.Log.Fatal(err.Error())
+	// }
+
 }
