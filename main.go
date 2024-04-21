@@ -48,7 +48,6 @@ func main() {
 			os.Exit(c.Run(c, args))
 			return
 		}
-
 	}
 
 	utils.PrintErrorAndExit("Unknow subcommand", cmd.ErrorTemplate)
