@@ -127,15 +127,15 @@ func LaodConfig() {
 		logger.Log.Hint("Check the latest version of zel's configuration file.")
 	}
 
-	// TODO 检查编译器
-	if len(Conf.Kit.Name) == 0 {
-		logger.Log.Warn("Your SDK is not configured. Please do consider configuring it.")
-		kit, err := selectKit()
-		if err != nil {
-			logger.Log.Fatal(err.Error())
-		}
-		Conf.Kit = *kit
-	}
+	// // TODO 检查编译器
+	// if len(Conf.Kit.Name) == 0 {
+	// 	logger.Log.Warn("Your SDK is not configured. Please do consider configuring it.")
+	// 	kit, err := selectKit()
+	// 	if err != nil {
+	// 		logger.Log.Fatal(err.Error())
+	// 	}
+	// 	Conf.Kit = *kit
+	// }
 
 	if len(Conf.DirStruct.Controllers) == 0 {
 		Conf.DirStruct.Controllers = "controllers"
@@ -145,7 +145,6 @@ func LaodConfig() {
 		Conf.DirStruct.Models = "models"
 	}
 
-	SaveConfig()
 }
 
 func WriteConfig(name string, value interface{}) error {
@@ -225,8 +224,8 @@ func parseYAML(path string, v interface{}) error {
 	return err
 }
 
-func SaveConfig() error {
-	configJson, err := json.MarshalIndent(Conf, "", "\t")
+func SaveKitsConfig(kits []*Kit) error {
+	configJson, err := json.MarshalIndent(kits, "", "\t")
 	if err != nil {
 		logger.Log.Error(err.Error())
 	}

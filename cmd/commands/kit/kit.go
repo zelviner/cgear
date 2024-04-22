@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/ZEL-30/zel/cmd/commands"
@@ -14,8 +15,16 @@ import (
 )
 
 type Compiler struct {
-	Name string
-	Path string
+	Name    string
+	CPath   string
+	CXXPath string
+}
+
+type CompilerInfo struct {
+	Version      string
+	Target       string
+	ThreadModel  string
+	InstalledDir string
 }
 
 var CmdKit = &commands.Command{
@@ -31,14 +40,11 @@ var CmdKit = &commands.Command{
 }
 
 var (
-	compilers     = []Compiler{}
 	compilerTypes = map[string]string{
-		"Clang for C":   "clang.exe",
-		"Clang for C++": "clang++.exe",
-		"Mingw for C":   "gcc.exe",
-		"Mingw for C++": "g++.exe",
+		"Clang": "clang++.exe",
+		"Mingw": "g++.exe",
 	}
-	kits []config.Kit
+	kits []*config.Kit
 )
 
 func init() {
@@ -60,27 +66,77 @@ func SetKit(cmd *commands.Command, args []string) int {
 		for key, value := range compilerTypes {
 			compilerPath := filepath.Join(path, value)
 			if _, err := os.Stat(compilerPath); err == nil {
-				err := appendKit(Compiler{key, compilerPath})
-				if err != nil {
-					logger.Log.Fatal(err.Error())
+				var compiler Compiler
+				switch key {
+				case "Clang":
+					compiler = Compiler{key, filepath.Join(path, "clang.exe"), compilerPath}
+
+				case "Mingw":
+					compiler = Compiler{key, filepath.Join(path, "gcc.exe"), compilerPath}
 				}
+
+				kit, err := getKit(compiler)
+				if err != nil {
+					logger.Log.Error(err.Error())
+				}
+
+				kits = append(kits, kit)
 			}
 		}
 	}
+
+	config.SaveKitsConfig(kits)
 
 	logger.Log.Successf("Successfully set kit: %s.", "clang")
 	return 0
 
 }
 
-func appendKit(compiler Compiler) error {
-	cmd := exec.Command(compiler.Path, "-v")
+func getKit(compiler Compiler) (*config.Kit, error) {
+
+	cmd := exec.Command(compiler.CXXPath, "-v")
 	logger.Log.Info(cmd.String())
-	info, err := cmd.CombinedOutput()
+	cxxInfo, err := cmd.CombinedOutput()
 	if err != nil {
-		return err
+		return nil, err
+	}
+	fmt.Println(string(cxxInfo))
+
+	var (
+		compilerInfo CompilerInfo
+		kit          config.Kit
+	)
+
+	switch compiler.Name {
+	case "Clang":
+		{
+			// 编译正则表达式，用于匹配版本号、目标、线程模型和安装目录
+			clangRegExpStr := `clang version ([^\s]+)\s+Target: ([^\s]+)\s+Thread model: ([^\s]+)\s+InstalledDir: (.+)`
+			re := regexp.MustCompile(clangRegExpStr)
+
+			// 使用正则表达式提取信息
+			matches := re.FindStringSubmatch(string(cxxInfo))
+
+			// 输出提取的信息
+			if len(matches) == 5 {
+				compilerInfo.Version = matches[1]
+				compilerInfo.Target = matches[2]
+				compilerInfo.ThreadModel = matches[3]
+				compilerInfo.InstalledDir = matches[4]
+			} else {
+				logger.Log.Error("未找到匹配项")
+			}
+			kit.Name = fmt.Sprintf("Clang %s %s", compilerInfo.Version, compilerInfo.Target)
+			kit.Compiler.C = compiler.CPath
+			kit.Compiler.CXX = compiler.CXXPath
+			kit.IsTrusted = true
+		}
+	case "Mingw":
+		{
+
+		}
+
 	}
 
-	fmt.Println(string(info))
-	return err
+	return &kit, nil
 }
