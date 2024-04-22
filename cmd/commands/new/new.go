@@ -13,8 +13,10 @@ import (
 	"github.com/ZEL-30/zel/utils"
 )
 
-var qt utils.DocValue
-var zelVersion utils.DocValue
+var (
+	qt         utils.DocValue
+	zelVersion utils.DocValue
+)
 
 var CmdNew = &commands.Command{
 	UsageLine: "new [appname] [-qt=false]",
@@ -62,8 +64,6 @@ func CreateProject(cmd *commands.Command, args []string) int {
 
 	var (
 		projectPath string
-		// packPath string
-		// err      error
 	)
 
 	// TODO  添加QT支持
@@ -121,5 +121,6 @@ func CreateProject(cmd *commands.Command, args []string) int {
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "vendor", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "vendor", "CMakeLists.txt"), vendorCmakeLists)
 
+	logger.Log.Success("New C++ project successfully created!")
 	return 0
 }

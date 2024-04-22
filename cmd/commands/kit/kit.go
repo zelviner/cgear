@@ -1,29 +1,43 @@
 package kit
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
 )
 
+type Compiler struct {
+	Name string
+	Path string
+}
+
 var CmdKit = &commands.Command{
 	UsageLine: "kit",
 	Short:     "Select a kit for your C++ project",
-	Long: `
-Select a kit for your C++ project
+	Long: `▶ {{"To find C++ compilers available on your system"|bold}}
+
+     $ zel kit find
 	`,
 
-	PreRun: nil,
-	Run:    SelectKit,
+	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
+	Run:    SetKit,
 }
 
 var (
+	compilers     = []Compiler{}
+	compilerTypes = map[string]string{
+		"Clang for C":   "clang.exe",
+		"Clang for C++": "clang++.exe",
+		"Mingw for C":   "gcc.exe",
+		"Mingw for C++": "g++.exe",
+	}
 	kits []config.Kit
 )
 
@@ -31,63 +45,42 @@ func init() {
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdKit)
 }
 
-func SelectKit(cmd *commands.Command, args []string) int {
-	userProfile := os.Getenv("USERPROFILE")
-	kitPath := filepath.Join(userProfile, "AppData", "Local", "CMakeTools", "cmake-tools-kits.json")
-	file, err := os.Open(kitPath)
-	if err != nil {
-		return -1
-	}
-	defer file.Close()
+func SetKit(cmd *commands.Command, args []string) int {
 
-	bytes, err := io.ReadAll(file)
-	if err != nil {
-		return -1
-	}
-	kitsData := string(bytes)
+	logger.Log.Info("Finding kits...")
 
-	err = json.Unmarshal([]byte(kitsData), &kits)
-	if err != nil {
-		return -1
-	}
+	// 查看环境变量中的路径
+	pathEnv := os.Getenv("PATH")
 
-	var (
-		kitIndex  int         // 选择的 kit 索引
-		exitIndex = len(kits) // 退出选项的索引
-	)
+	// 将路径字符串按分号分割成切片
+	paths := strings.Split(pathEnv, ";")
 
-	// 输出所有 kit
-	logger.Log.Infof("Found %d kits:", len(kits))
-	for i, kit := range kits {
-		fmt.Printf("\t[%d] %s\n", i+1, kit.Name)
-		fmt.Println("\t\t" + kit.Compiler.CXX)
-	}
-	fmt.Printf("\t[%d] %s\n", exitIndex, "Exit")
-
-	// 选择 kit
-	logger.Log.Info("Please select one kit to use:")
-	_, err = fmt.Scanln(&kitIndex)
-	kitIndex--
-	if err != nil {
-		return -1
-	}
-	if kitIndex < 0 || kitIndex > exitIndex {
-		return -1
+	// 在环境变量中搜索 C++ 编译器
+	for _, path := range paths {
+		for key, value := range compilerTypes {
+			compilerPath := filepath.Join(path, value)
+			if _, err := os.Stat(compilerPath); err == nil {
+				err := appendKit(Compiler{key, compilerPath})
+				if err != nil {
+					logger.Log.Fatal(err.Error())
+				}
+			}
+		}
 	}
 
-	if kitIndex == exitIndex {
-		logger.Log.Infof("Exit")
-		os.Exit(0)
-	}
-
-	kit := kits[kitIndex]
-
-	config.Conf.Kit = kit
-
-	logger.Log.Infof("Selected kit: %s", kit.Name)
-
-	// 保存配置
-	config.SaveConfig()
-
+	logger.Log.Successf("Successfully set kit: %s.", "clang")
 	return 0
+
+}
+
+func appendKit(compiler Compiler) error {
+	cmd := exec.Command(compiler.Path, "-v")
+	logger.Log.Info(cmd.String())
+	info, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(info))
+	return err
 }

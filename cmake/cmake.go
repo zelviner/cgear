@@ -49,7 +49,7 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) {
 
 	logger.Log.Infof("Using '%s' as the kit", configArg.Kit.Name)
 
-	// 检查编译目录是否存在，如果存在则删除，然后创建
+	// 检查是否
 	if rebuild {
 		if _, err := os.Stat(configArg.BuildPath); err == nil {
 			os.RemoveAll(configArg.BuildPath)
