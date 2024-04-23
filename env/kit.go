@@ -1,4 +1,4 @@
-package kit
+package env
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
 )
@@ -18,16 +17,6 @@ type Compiler struct {
 	Name    string
 	CPath   string
 	CXXPath string
-}
-
-var CmdKit = &commands.Command{
-	UsageLine: "kit [-find=false]",
-	Short:     "Select a kit for your C++ project",
-	Long: `Select a kit for your C++ project
-	`,
-
-	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
-	Run:    SetKit,
 }
 
 var (
@@ -40,12 +29,9 @@ var (
 	findAgain bool
 )
 
-func init() {
-	CmdKit.Flag.BoolVar(&findAgain, "find", false, "Find C++ compilers in your system again.")
-	commands.AvailableCommands = append(commands.AvailableCommands, CmdKit)
-}
-
 func SetKit(cmd *commands.Command, args []string) int {
+
+	cmd.Flag.Parse(args)
 
 	if findAgain || len(config.Conf.Kits) == 0 {
 		logger.Log.Info("Finding kits...")

@@ -1,6 +1,7 @@
 package cmake
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -9,26 +10,21 @@ import (
 	"github.com/ZEL-30/zel/logger"
 )
 
-const (
-	RELEASE = iota
-	DEBUG
-)
-
 // cmake 配置命令参数
 type ConfigArg struct {
-	NoWarnUnusedCli       bool       // 不警告在命令行声明但未使用的变量
-	BuildType             int        // 构建类型
-	ExportCompileCommands bool       // 导出编译命令
-	Kit                   config.Kit // 编译器
-	AppPath               string     // 源代码路径
-	BuildPath             string     // 构建目录
-	Generator             string     // 生成器
+	NoWarnUnusedCli       bool        // 不警告在命令行声明但未使用的变量
+	BuildType             string      // 构建类型
+	ExportCompileCommands bool        // 导出编译命令
+	Kit                   *config.Kit // 编译器
+	AppPath               string      // 源代码路径
+	BuildPath             string      // 构建目录
+	Generator             string      // 生成器
 }
 
 // cmake 构建命令参数
 type BuildArg struct {
 	BuildPath string // 构建路径
-	BuildType int    // 构建类型
+	BuildType string // 构建类型
 }
 
 var (
@@ -41,15 +37,40 @@ func init() {
 	appName = filepath.Base(appPath)
 }
 
-func Run(target string) {
+func Run(configArg *ConfigArg, buildArg *BuildArg, target string) {
+	err := Build(configArg, buildArg, false)
+	if err != nil {
+		logger.Log.Fatalf("Build failed: %s", err)
+	}
 
+	// 运行应用程序
+	if len(target) == 0 {
+		target = appName + ".exe"
+	} else {
+		target = target + ".exe"
+	}
+
+	runPath := filepath.Join(appPath, "bin", target)
+
+	cmd := exec.Command(runPath)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		logger.Log.Fatalf("Run failed: %s", err)
+	}
 }
 
-func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) {
+func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) error {
 
-	logger.Log.Infof("Using '%s' as the kit", configArg.Kit.Name)
+	if len(configArg.Kit.Name) == 0 {
+		return fmt.Errorf("No kit specified, please use 'zel kit' to set available kit")
+	}
 
-	// 检查是否
+	logger.Log.Infof("Kit: %s", configArg.Kit.Name)
+	logger.Log.Infof("Build type: %s", configArg.BuildType)
+
+	// 检查是否需要重新构建
 	if rebuild {
 		if _, err := os.Stat(configArg.BuildPath); err == nil {
 			os.RemoveAll(configArg.BuildPath)
@@ -58,22 +79,24 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) {
 
 	// 配置 C++ 项目
 	cmd := exec.Command("cmake", configArg.toStringSlice()...)
-	logger.Log.Infof("Running 'cmake %s'", cmd.String())
-	cmd.Stdout = os.Stdout
+	// logger.Log.Infof("Running 'cmake %s'", cmd.String())
+	// cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		logger.Log.Fatal(err.Error())
+		return err
 	}
 
 	// 编译 C++ 项目
 	cmd = exec.Command("cmake", buildArg.toStringSlice()...)
 	// cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		logger.Log.Fatal(err.Error())
+		return err
 	}
+
+	return err
 }
 
 func (c *ConfigArg) toStringSlice() []string {
@@ -83,11 +106,7 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "--no-warn-unused-cli")
 	}
 
-	if c.BuildType == RELEASE {
-		result = append(result, "-DCMAKE_BUILD_TYPE:STRING=Release")
-	} else if c.BuildType == DEBUG {
-		result = append(result, "-DCMAKE_BUILD_TYPE:STRING=Debug")
-	}
+	result = append(result, "-DCMAKE_BUILD_TYPE:STRING="+c.BuildType)
 
 	if c.ExportCompileCommands {
 		result = append(result, "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE")
@@ -122,11 +141,7 @@ func (b *BuildArg) toStringSlice() []string {
 	result = append(result, "--build")
 	result = append(result, b.BuildPath)
 
-	if b.BuildType == RELEASE {
-		result = append(result, "--config Release")
-	} else if b.BuildType == DEBUG {
-		result = append(result, "--config Debug")
-	}
+	result = append(result, "--config "+b.BuildType)
 
 	result = append(result, "--")
 

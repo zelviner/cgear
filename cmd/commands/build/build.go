@@ -12,7 +12,7 @@ import (
 )
 
 var CmdBuild = &commands.Command{
-	UsageLine: "build [-rebuild=false]",
+	UsageLine: "build [-r=false]",
 	Short:     "Compile the application",
 	Long: `
 Build command will supervise the filesystem of the application for any changes, and recompile/restart it.
@@ -24,12 +24,14 @@ Build command will supervise the filesystem of the application for any changes, 
 
 var (
 	rebuild   bool   // 是否重新构建
+	buildType string // 构建类型
 	appPath   string // 应用程序路径
 	buildPath string // 构建路径
 )
 
 func init() {
-	CmdBuild.Flag.BoolVar(&rebuild, "rebuild", false, "Delete previously compiled build folders and recompile the application.")
+	CmdBuild.Flag.BoolVar(&rebuild, "r", false, "Set whether to rebuild, default false")
+	CmdBuild.Flag.StringVar(&buildType, "t", "Debug", "Set build type (Debug, Release, RelWithDebInfo, MinSizeRel)")
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdBuild)
 }
 
@@ -39,7 +41,7 @@ func BuildApp(cmd *commands.Command, args []string) int {
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
-		BuildType:             0,
+		BuildType:             config.Conf.BuildType,
 		ExportCompileCommands: true,
 		Kit:                   config.Conf.Kit,
 		AppPath:               appPath,
@@ -49,7 +51,7 @@ func BuildApp(cmd *commands.Command, args []string) int {
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildType: 0,
+		BuildType: config.Conf.BuildType,
 	}
 
 	cmake.Build(&configArg, &buildArg, rebuild)

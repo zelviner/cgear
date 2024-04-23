@@ -2,12 +2,11 @@ package run
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 
+	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/version"
-	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/config"
 )
 
 var CmdRun = &commands.Command{
@@ -17,7 +16,7 @@ var CmdRun = &commands.Command{
 Run command will supervise the filesystem of the application for any changes, and recompile/restart it.
 
 `,
-	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
+	PreRun: nil,
 	Run:    RunApp,
 }
 
@@ -41,26 +40,35 @@ func RunApp(cmd *commands.Command, args []string) int {
 	// 默认应用程序路径是当前工作目录
 	appPath, _ := os.Getwd()
 
-	// 如果提供了参数，我们将其用作应用程序路径
-	if len(args) != 0 && args[0] != "watchall" {
-		if filepath.IsAbs(args[0]) {
-			appPath = args[0]
-		} else {
-			appPath = filepath.Join(appPath, args[0])
-		}
-	}
+	// // 如果提供了参数，我们将其用作应用程序路径
+	// if len(args) != 0 && args[0] != "watchall" {
+	// 	if filepath.IsAbs(args[0]) {
+	// 		appPath = args[0]
+	// 	} else {
+	// 		appPath = filepath.Join(appPath, args[0])
+	// 	}
+	// }
 
 	appName = filepath.Base(appPath)
+	// logger.Log.Infof("Using '%s' as 'appname'", appName)
 
-	logger.Log.Infof("Using '%s' as 'appname'", appName)
-
-	execmd := exec.Command(".\\run.bat", appName)
-	execmd.Stdout = os.Stdout
-	execmd.Stderr = os.Stderr
-	err := execmd.Run()
-	if err != nil {
-		logger.Log.Fatal(err.Error())
+	buildPath := filepath.Join(appPath, "build")
+	configArg := cmake.ConfigArg{
+		NoWarnUnusedCli:       true,
+		BuildType:             config.Conf.BuildType,
+		ExportCompileCommands: true,
+		Kit:                   config.Conf.Kit,
+		AppPath:               appPath,
+		BuildPath:             buildPath,
+		Generator:             "Ninja",
 	}
+
+	buildArg := cmake.BuildArg{
+		BuildPath: buildPath,
+		BuildType: config.Conf.BuildType,
+	}
+
+	cmake.Run(&configArg, &buildArg, args[0])
 
 	return 0
 
