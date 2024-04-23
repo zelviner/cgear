@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/logger"
 )
 
 // cmake 配置命令参数
@@ -37,10 +36,10 @@ func init() {
 	appName = filepath.Base(appPath)
 }
 
-func Run(configArg *ConfigArg, buildArg *BuildArg, target string) {
+func Run(configArg *ConfigArg, buildArg *BuildArg, target string) error {
 	err := Build(configArg, buildArg, false)
 	if err != nil {
-		logger.Log.Fatalf("Build failed: %s", err)
+		return err
 	}
 
 	// 运行应用程序
@@ -57,8 +56,10 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string) {
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		logger.Log.Fatalf("Run failed: %s", err)
+		return err
 	}
+
+	return err
 }
 
 func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) error {
@@ -66,9 +67,6 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) error {
 	if len(configArg.Kit.Name) == 0 {
 		return fmt.Errorf("No kit specified, please use 'zel kit' to set available kit")
 	}
-
-	logger.Log.Infof("Kit: %s", configArg.Kit.Name)
-	logger.Log.Infof("Build type: %s", configArg.BuildType)
 
 	// 检查是否需要重新构建
 	if rebuild {

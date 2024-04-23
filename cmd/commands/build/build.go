@@ -6,7 +6,6 @@ import (
 
 	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
 )
@@ -18,8 +17,7 @@ var CmdBuild = &commands.Command{
 Build command will supervise the filesystem of the application for any changes, and recompile/restart it.
 
 `,
-	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
-	Run:    BuildApp,
+	Run: BuildApp,
 }
 
 var (

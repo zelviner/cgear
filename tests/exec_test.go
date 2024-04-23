@@ -18,4 +18,6 @@ func TestExec(t *testing.T) {
 	val := os.Getenv("CPATH")
 	fmt.Println(val)
 
+	t.Error("test")
+
 }
