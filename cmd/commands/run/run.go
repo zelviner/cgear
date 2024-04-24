@@ -23,20 +23,20 @@ Run command will supervise the filesystem of the application for any changes, an
 var (
 	appName  string    // 应用程序名称
 	currPath string    // 应用程序路径
-	runMode  string    // 当前运行模式
-	runArgs  string    // 运行应用程序的额外参数
+	rebuild  bool      // 是否重建
 	exit     chan bool // 发出退出信号的通道
 )
 
 func init() {
-	CmdRun.Flag.StringVar(&runMode, "runmode", "", "Set the C++ run mode.")
-	CmdRun.Flag.StringVar(&runArgs, "runargs", "", "Extra args to run application.")
+	CmdRun.Flag.BoolVar(&rebuild, "r", false, "Clear the build folder in the project and rebuild, default false")
 	exit = make(chan bool)
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdRun)
 }
 
 // RunApp定位要监视的文件，并启动 C++ 应用程序
 func RunApp(cmd *commands.Command, args []string) int {
+	cmd.Flag.Parse(args[1:])
+
 	// 默认应用程序路径是当前工作目录
 	appPath, _ := os.Getwd()
 
@@ -55,7 +55,7 @@ func RunApp(cmd *commands.Command, args []string) int {
 	buildPath := filepath.Join(appPath, "build")
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
-		BuildType:             config.Conf.BuildType,
+		BuildMode:             config.Conf.BuildMode,
 		ExportCompileCommands: true,
 		Kit:                   config.Conf.Kit,
 		AppPath:               appPath,
@@ -65,10 +65,10 @@ func RunApp(cmd *commands.Command, args []string) int {
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildType: config.Conf.BuildType,
+		BuildMode: config.Conf.BuildMode,
 	}
 
-	cmake.Run(&configArg, &buildArg, args[0])
+	cmake.Run(&configArg, &buildArg, args[0], rebuild)
 
 	return 0
 

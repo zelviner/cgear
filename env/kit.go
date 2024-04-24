@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ZEL-30/zel/cmd/commands"
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
 )
@@ -25,37 +24,37 @@ var (
 		"Clang-cl": "clang-cpp.exe",
 		"Mingw":    "g++.exe",
 	}
-	kits      []*config.Kit
-	findAgain bool
+	buildModes = []string{
+		"Debug",
+		"Release",
+		"RelWithDebInfo",
+		"MinSizeRel",
+	}
 )
 
-func SetKit(cmd *commands.Command, args []string) int {
+func SetBuildKit() int {
 
-	cmd.Flag.Parse(args)
-
-	if findAgain || len(config.Conf.Kits) == 0 {
-		logger.Log.Info("Finding kits...")
-		err := findKits()
-		if err != nil {
-			logger.Log.Fatal(err.Error())
-		}
+	logger.Log.Info("Finding kits...")
+	kits, err := findKits()
+	if err != nil {
+		logger.Log.Fatal(err.Error())
 	}
 
 	var (
-		kitIndex  int                     // 选择的 kit 索引
-		exitIndex = len(config.Conf.Kits) // 退出选项的索引
+		kitIndex  int         // 选择的 kit 索引
+		exitIndex = len(kits) // 退出选项的索引
 	)
 
 	logger.Log.Infof("Found %d Kits, please select one kit to use:", exitIndex)
 
 	// 输出所有 kit
-	for i, kit := range config.Conf.Kits {
+	for i, kit := range kits {
 		fmt.Printf("\t[%d] %s\n", i+1, kit.Name)
 	}
 	fmt.Printf("\t[%d] %s\n", exitIndex+1, "Exit")
 
 	// 选择 kit
-	_, err := fmt.Scanln(&kitIndex)
+	_, err = fmt.Scanln(&kitIndex)
 	kitIndex--
 	if err != nil {
 		logger.Log.Error(err.Error())
@@ -69,14 +68,14 @@ func SetKit(cmd *commands.Command, args []string) int {
 		os.Exit(0)
 	}
 
-	config.Conf.Kit = config.Conf.Kits[kitIndex]
+	config.Conf.Kit = kits[kitIndex]
 	config.SaveConfig()
 	logger.Log.Successf("Successfully set kit: %s", config.Conf.Kit.Name)
 
 	return 0
 }
 
-func findKits() (err error) {
+func findKits() (kits []*config.Kit, err error) {
 
 	// 查看环境变量中的路径
 	pathEnv := os.Getenv("PATH")
@@ -99,7 +98,6 @@ func findKits() (err error) {
 
 				case "Mingw":
 					compiler = Compiler{key, filepath.Join(path, "gcc.exe"), compilerPath}
-
 				}
 
 				kit, err := getKit(compiler)
@@ -112,9 +110,7 @@ func findKits() (err error) {
 		}
 	}
 
-	config.Conf.Kits = kits
-
-	return err
+	return kits, nil
 
 }
 
@@ -196,4 +192,27 @@ func getKit(compiler Compiler) (*config.Kit, error) {
 	}
 
 	return &kit, nil
+}
+
+func SetBuildMode() {
+	logger.Log.Info("Please select a build type:")
+
+	for i, buildMode := range buildModes {
+		fmt.Printf("\t[%d] %s\n", i+1, buildMode)
+	}
+
+	var (
+		modeIndex int
+	)
+
+	_, err := fmt.Scanln(&modeIndex)
+	modeIndex--
+	if err != nil {
+		logger.Log.Error(err.Error())
+	}
+
+	config.Conf.BuildMode = buildModes[modeIndex]
+	config.SaveConfig()
+	logger.Log.Successf("Successfully set build type: %s", config.Conf.BuildMode)
+
 }

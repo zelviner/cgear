@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"testing"
+
+	"github.com/ZEL-30/zel/logger/colors"
 )
 
 func TestExec(t *testing.T) {
@@ -13,11 +15,12 @@ func TestExec(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(string(out))
+	// fmt.Println(string(out))
+
+	fmt.Println(colors.Black(string(out)))
+	fmt.Println(colors.Bold(string(out)))
 
 	val := os.Getenv("CPATH")
 	fmt.Println(val)
-
-	t.Error("test")
 
 }

@@ -11,8 +11,9 @@ import (
 
 type EnvInfo struct {
 	ZelVersion string
-	BuildType  string
-	Kit        string
+	BuildMode  string
+	BuildKit   string
+	TestMode   string
 }
 
 // InitBanner 加载横幅并打印到输出
@@ -39,8 +40,14 @@ func show(out io.Writer, content string) {
 
 	envInfo := EnvInfo{
 		ZelVersion: config.Version,
-		BuildType:  config.Conf.BuildType,
-		Kit:        config.Conf.Kit.Name,
+		BuildMode:  config.Conf.BuildMode,
+		TestMode:   config.Conf.TestMode,
+	}
+
+	if config.Conf.Kit == nil {
+		envInfo.BuildKit = "N/A"
+	} else {
+		envInfo.BuildKit = config.Conf.Kit.Name
 	}
 
 	err = t.Execute(out, envInfo)

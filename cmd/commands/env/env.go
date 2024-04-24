@@ -15,21 +15,25 @@ const envInfoTemplate string = `%s%s _____     _
  / //\  __/ |__
 /____/\___|___/  v{{ .ZelVersion }}%s
 %s%s
-├── Kit         : {{ .Kit }}
-├── BuildType   : {{ .BuildType }}
-└── Date        : {{ Now "Monday, 2 Jan 2006" }}%s
+├── BuildKit  : {{ .BuildKit }}
+├── BuildMode : {{ .BuildMode }}
+├── TestMode  : {{ .TestMode }}
+└── Date      : {{ Now "Monday, 2 Jan 2006" }}%s
 `
 
 var CmdEnv = &commands.Command{
 	UsageLine: "env [command]",
-	Short:     "Setting up the environment for running C++ projects.",
-	Long: `▶ {{"To set kit for your C++ project:"|bold}}
+	Short:     "Setting up the environment for running C++ projects",
+	Long: `▶ {{"To set build kit for your C++ project:"|bold}}
 
      $ zel env kit
 
-  ▶ {{"To set build type for your C++ project:"|bold}}
+  ▶ {{"To set build mode for your C++ project:"|bold}}
 
-     $ zel env buildtype
+     $ zel env mode
+  ▶ {{"To set build mode for your C++ project:"|bold}}
+
+     $ zel env mode
 `,
 	Run: SetEnv,
 }
@@ -45,9 +49,12 @@ func SetEnv(cmd *commands.Command, args []string) int {
 		gcmd := args[0]
 		switch gcmd {
 		case "kit":
-			env.SetKit(cmd, args)
-		case "buildtype":
-			// buildtype(cmd, args, currPath)
+			env.SetBuildKit()
+
+		case "mode":
+			env.SetBuildMode()
+
+		case "test":
 
 		default:
 			logger.Log.Fatal("Command is missing")

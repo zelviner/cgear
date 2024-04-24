@@ -11,7 +11,7 @@ import (
 
 var CmdPack = &commands.Command{
 	UsageLine: "pack",
-	Short:     "Compresses a C++ project into a single file.",
+	Short:     "Compresses a C++ project into a single file",
 	Long: `Pack is used to compress C++ project into a tarball/zip file.
   This eases the deployment by directly extracting the file to a server.
  

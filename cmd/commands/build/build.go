@@ -11,7 +11,7 @@ import (
 )
 
 var CmdBuild = &commands.Command{
-	UsageLine: "build [-r=false]",
+	UsageLine: "build [-r]",
 	Short:     "Compile the application",
 	Long: `
 Build command will supervise the filesystem of the application for any changes, and recompile/restart it.
@@ -28,18 +28,19 @@ var (
 )
 
 func init() {
-	CmdBuild.Flag.BoolVar(&rebuild, "r", false, "Set whether to rebuild, default false")
+	CmdBuild.Flag.BoolVar(&rebuild, "r", false, "Clear the build folder in the project and rebuild, default false")
 	CmdBuild.Flag.StringVar(&buildType, "t", "Debug", "Set build type (Debug, Release, RelWithDebInfo, MinSizeRel)")
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdBuild)
 }
 
 func BuildApp(cmd *commands.Command, args []string) int {
+
 	appPath, _ = os.Getwd()
 	buildPath = filepath.Join(appPath, "build")
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
-		BuildType:             config.Conf.BuildType,
+		BuildMode:             config.Conf.BuildMode,
 		ExportCompileCommands: true,
 		Kit:                   config.Conf.Kit,
 		AppPath:               appPath,
@@ -49,10 +50,13 @@ func BuildApp(cmd *commands.Command, args []string) int {
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildType: config.Conf.BuildType,
+		BuildMode: config.Conf.BuildMode,
 	}
 
-	cmake.Build(&configArg, &buildArg, rebuild)
+	err := cmake.Build(&configArg, &buildArg, rebuild)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
 
 	logger.Log.Success("Build successful!")
 

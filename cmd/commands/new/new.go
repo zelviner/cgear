@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
 	"github.com/ZEL-30/zel/utils"
 )
 
 var (
-	qt         utils.DocValue
+	test       bool
+	qt         bool
 	zelVersion utils.DocValue
 )
 
@@ -41,44 +41,44 @@ var CmdNew = &commands.Command{
             ├── {{"docs"|foldername}}
 `,
 	PreRun: nil,
-	Run:    CreateProject,
+	Run:    Create,
 }
 
 func init() {
-	CmdNew.Flag.Var(&qt, "qt", "Support qt application,default false")
+	CmdNew.Flag.BoolVar(&qt, "qt", false, "New a Qt Application, default false")
+	CmdNew.Flag.BoolVar(&test, "test", false, "New a Test Case, default false")
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdNew)
 }
 
-func CreateProject(cmd *commands.Command, args []string) int {
-	output := cmd.Out()
+func Create(cmd *commands.Command, args []string) int {
 	if len(args) == 0 {
 		logger.Log.Fatal("Argument [appname] is missing")
 	}
 
-	if len(args) > 2 {
-		err := cmd.Flag.Parse(args[1:])
-		if err != nil {
-			logger.Log.Fatal("Parse args err" + err.Error())
-		}
+	err := cmd.Flag.Parse(args[1:])
+	if err != nil {
+		logger.Log.Fatal("Parse args err" + err.Error())
 	}
 
-	var (
-		projectPath string
-	)
+	switch {
+	case qt:
+		CreateProjectWithQt(cmd, args)
 
-	// TODO  添加QT支持
-	if qt == "true" {
-		logger.Log.Info("Generate new project support GOPATH")
-		version.ShowShortVersionBanner()
+	case test:
+		CreateTestCase(cmd, args[0])
 
-	} else {
-		logger.Log.Info("Generate new project support go mudules.")
-		projectPath = filepath.Join(utils.GetZelWorkPath(), args[0])
-		// packPath = args[0]
-		if zelVersion.String() == `` {
-			zelVersion.Set(utils.ZEL_VERSION)
-		}
+	default:
+		CreateProject(cmd, args[0])
 	}
+
+	return 0
+}
+
+func CreateProject(cmd *commands.Command, appname string) int {
+
+	output := cmd.Out()
+
+	projectPath := filepath.Join(utils.GetZelWorkPath(), appname)
 
 	if utils.IsExist(projectPath) {
 		logger.Log.Errorf(colors.Bold("Application '%s' already exists"), projectPath)
@@ -105,11 +105,11 @@ func CreateProject(cmd *commands.Command, args []string) int {
 
 	// 创建C++项目所需文件
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "CMakeLists.txt"), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(projectPath, "CMakeLists.txt"), strings.Replace(projectCmakeLists, "{{.ProjectName}}", filepath.Base(args[0]), -1))
+	utils.WriteToFile(filepath.Join(projectPath, "CMakeLists.txt"), strings.Replace(projectCmakeLists, "{{.ProjectName}}", filepath.Base(appname), -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".clang-format"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, ".clang-format"), clangFormat)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "README.md"), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(projectPath, "README.md"), strings.Replace(readme, "{{.ProjectName}}", filepath.Base(args[0]), -1))
+	utils.WriteToFile(filepath.Join(projectPath, "README.md"), strings.Replace(readme, "{{.ProjectName}}", filepath.Base(appname), -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "src", "CMakeLists.txt"), srcCmakeLists)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src/utils", "utils.h"), "\x1b[0m")
@@ -123,4 +123,56 @@ func CreateProject(cmd *commands.Command, args []string) int {
 
 	logger.Log.Success("New C++ project successfully created!")
 	return 0
+}
+
+func CreateProjectWithQt(cmd *commands.Command, args []string) {
+
+}
+
+func CreateTestCase(cmd *commands.Command, testname string) {
+
+	output := cmd.Out()
+
+	var (
+		testPath     string
+		testsPath    string
+		testFileName string
+	)
+
+	testsPath = filepath.Join(utils.GetZelWorkPath(), "tests")
+	testPath = filepath.Join(utils.GetZelWorkPath(), "tests", testname)
+	testFileName = testname + "_test.cpp"
+
+	if utils.IsExist(testPath) {
+		logger.Log.Errorf(colors.Bold("Test case '%s' already exists"), testPath)
+		logger.Log.Warn(colors.Bold("Do you want to overwrite it? [Yes]|No "))
+		if !utils.AskForConfirmation() {
+			os.Exit(2)
+		}
+	}
+	logger.Log.Info("Creating test case...")
+
+	// 创建C++项目所需文件夹
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", testPath, "\x1b[0m")
+	os.MkdirAll(testPath, 0755)
+
+	// 创建C++项目所需文件
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(testPath, testFileName), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(testPath, testFileName), testContent)
+
+	// 向 cmakelists 中 追加写入内容
+	fmt.Fprintf(output, "\t%s%sadd%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(testsPath, "CMakeLists.txt"), "\x1b[0m")
+	file, err := os.OpenFile(filepath.Join(testsPath, "CMakeLists.txt"), os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		logger.Log.Fatalf("Open '%s' err: %s", filepath.Join(testsPath, "CMakeLists.txt"), err.Error())
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(strings.Replace(testCmakeLists, "{{ .TestName }}", filepath.Base(testname), -1))
+	if err != nil {
+		logger.Log.Fatalf("Write '%s' err: %s", filepath.Join(testsPath, "CMakeLists.txt"), err.Error())
+	}
+
+	logger.Log.Success("New test case successfully created!")
+
 }

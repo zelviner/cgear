@@ -7,12 +7,13 @@ import (
 	"path/filepath"
 
 	"github.com/ZEL-30/zel/config"
+	"github.com/ZEL-30/zel/logger"
 )
 
 // cmake 配置命令参数
 type ConfigArg struct {
 	NoWarnUnusedCli       bool        // 不警告在命令行声明但未使用的变量
-	BuildType             string      // 构建类型
+	BuildMode             string      // 构建类型
 	ExportCompileCommands bool        // 导出编译命令
 	Kit                   *config.Kit // 编译器
 	AppPath               string      // 源代码路径
@@ -23,7 +24,7 @@ type ConfigArg struct {
 // cmake 构建命令参数
 type BuildArg struct {
 	BuildPath string // 构建路径
-	BuildType string // 构建类型
+	BuildMode string // 构建类型
 }
 
 var (
@@ -36,8 +37,8 @@ func init() {
 	appName = filepath.Base(appPath)
 }
 
-func Run(configArg *ConfigArg, buildArg *BuildArg, target string) error {
-	err := Build(configArg, buildArg, false)
+func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) error {
+	err := Build(configArg, buildArg, rebuild)
 	if err != nil {
 		return err
 	}
@@ -64,13 +65,14 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string) error {
 
 func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) error {
 
-	if len(configArg.Kit.Name) == 0 {
-		return fmt.Errorf("No kit specified, please use 'zel kit' to set available kit")
+	if configArg.Kit == nil {
+		return fmt.Errorf("No kit specified, please use 'zel env kit' to set available kit")
 	}
 
 	// 检查是否需要重新构建
 	if rebuild {
 		if _, err := os.Stat(configArg.BuildPath); err == nil {
+			logger.Log.Warn("删除build文件夹")
 			os.RemoveAll(configArg.BuildPath)
 		}
 	}
@@ -104,7 +106,7 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "--no-warn-unused-cli")
 	}
 
-	result = append(result, "-DCMAKE_BUILD_TYPE:STRING="+c.BuildType)
+	result = append(result, "-DCMAKE_BUILD_TYPE:STRING="+c.BuildMode)
 
 	if c.ExportCompileCommands {
 		result = append(result, "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE")
@@ -139,7 +141,7 @@ func (b *BuildArg) toStringSlice() []string {
 	result = append(result, "--build")
 	result = append(result, b.BuildPath)
 
-	result = append(result, "--config "+b.BuildType)
+	result = append(result, "--config "+b.BuildMode)
 
 	result = append(result, "--")
 
