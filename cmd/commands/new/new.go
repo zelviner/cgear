@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
 	"github.com/ZEL-30/zel/utils"
@@ -33,14 +34,14 @@ var CmdNew = &commands.Command{
             |          └── utils.cpp
             |          └── utils.h
             │     └── main.cpp
-            ├── {{"tests"|foldername}}
+            ├── {{"test"|foldername}}
             │     └── CMakeLists.txt
             │     └── test.cpp
             ├── {{"vendor"|foldername}}
             │     └── CMakeLists.txt
             ├── {{"docs"|foldername}}
 `,
-	PreRun: nil,
+	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
 	Run:    Create,
 }
 
@@ -96,8 +97,8 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	os.MkdirAll(filepath.Join(projectPath, "src"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src", "utils")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "src", "utils"), 0755)
-	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "tests")+string(filepath.Separator), "\x1b[0m")
-	os.MkdirAll(filepath.Join(projectPath, "tests"), 0755)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test")+string(filepath.Separator), "\x1b[0m")
+	os.MkdirAll(filepath.Join(projectPath, "test"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "vendor")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "vendor"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
@@ -116,8 +117,8 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.h"), utilsHeader)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src/utils", "utils.cpp"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.cpp"), utilsCPP)
-	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "tests", "CMakeLists.txt"), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(projectPath, "tests", "CMakeLists.txt"), testsCmakeLists)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test", "CMakeLists.txt"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "test", "CMakeLists.txt"), testsCmakeLists)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "vendor", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "vendor", "CMakeLists.txt"), vendorCmakeLists)
 
@@ -139,8 +140,8 @@ func CreateTestCase(cmd *commands.Command, testname string) {
 		testFileName string
 	)
 
-	testsPath = filepath.Join(utils.GetZelWorkPath(), "tests")
-	testPath = filepath.Join(utils.GetZelWorkPath(), "tests", testname)
+	testsPath = filepath.Join(utils.GetZelWorkPath(), "test")
+	testPath = filepath.Join(utils.GetZelWorkPath(), "test", testname)
 	testFileName = testname + "_test.cpp"
 
 	if utils.IsExist(testPath) {

@@ -48,7 +48,7 @@ func IsZelProject(thePath string) bool {
 	cmakeListsFiles := []string{
 		thePath + `\CMakeLists.txt`,
 		thePath + `\src\CMakeLists.txt`,
-		thePath + `\tests\CMakeLists.txt`,
+		thePath + `\test\CMakeLists.txt`,
 	}
 	var files string
 

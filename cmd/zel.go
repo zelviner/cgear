@@ -5,6 +5,7 @@ import (
 	_ "github.com/ZEL-30/zel/cmd/commands/build"
 	_ "github.com/ZEL-30/zel/cmd/commands/env"
 	_ "github.com/ZEL-30/zel/cmd/commands/generate"
+	_ "github.com/ZEL-30/zel/cmd/commands/install"
 	_ "github.com/ZEL-30/zel/cmd/commands/new"
 	_ "github.com/ZEL-30/zel/cmd/commands/pack"
 	_ "github.com/ZEL-30/zel/cmd/commands/run"

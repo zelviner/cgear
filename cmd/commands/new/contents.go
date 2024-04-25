@@ -84,13 +84,13 @@ endlocal
 `
 
 var projectCmakeLists = `# 最低版本
-cmake_minimum_required(VERSION 3.20.2) 
+cmake_minimum_required(VERSION 3.14) 
 
 # 设置项目名称
 project({{.ProjectName}})
 
-# 采用C++11标准
-set(CMAKE_CXX_STANDARD 11)
+# 采用C++14标准
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -109,7 +109,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 # 添加子工程
 add_subdirectory(vendor)
 add_subdirectory(src)
-add_subdirectory(tests)
+add_subdirectory(test)
 `
 
 var srcCmakeLists = `# 查找源文件
