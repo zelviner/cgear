@@ -153,6 +153,11 @@ func MustCheck(err error) {
 	}
 }
 
+// 复制文件夹
+func CopyDir(src, dst string) (err error) {
+	return nil
+}
+
 // 创建文件并向其中写入内容
 func WriteToFile(filename string, content string) {
 	f, err := os.Create(filename)
@@ -160,6 +165,12 @@ func WriteToFile(filename string, content string) {
 	defer CloseFile(f)
 
 	_, err = f.WriteString(content)
+	MustCheck(err)
+}
+
+// 尝试关闭传递的文件, 如果出错 panic
+func CloseFile(f *os.File) {
+	err := f.Close()
 	MustCheck(err)
 }
 
@@ -188,12 +199,6 @@ func FileTrim(filename string) (content string) {
 	}
 
 	return
-}
-
-// 尝试关闭传递的文件, 如果出错 panic
-func CloseFile(f *os.File) {
-	err := f.Close()
-	MustCheck(err)
 }
 
 func PrintErrorAndExit(message string, errorTemplate string) {
