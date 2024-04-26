@@ -53,7 +53,7 @@ func BuildApp(cmd *commands.Command, args []string) int {
 		BuildMode: config.Conf.BuildMode,
 	}
 
-	err := cmake.Build(&configArg, &buildArg, rebuild)
+	err := cmake.Build(&configArg, &buildArg, rebuild, true)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}

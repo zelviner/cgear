@@ -107,9 +107,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 # 添加子工程
-add_subdirectory(vendor)
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(vendor)
 `
 
 var srcCmakeLists = `# 查找源文件
@@ -161,9 +161,42 @@ PUBLIC
 `
 
 var vendorCmakeLists = `
+add_subdirectory(googletest)
 `
 
-var testsCmakeLists = `
+var testCmakeLists = `function(add_test_executable name)
+    file(GLOB_RECURSE files ${name}/*.cpp)
+    add_executable(${name}-test ${files})
+    target_include_directories(${name}-test 
+    PUBLIC
+    )
+    target_link_libraries(${name}-test
+    PUBLIC
+        ${PROJECT_NAME}
+        gtest_main
+        ${ARGN}
+    )
+    add_test(
+        NAME ${name}-test
+        COMMAND ${name}-test
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    include(GoogleTest)
+    gtest_discover_tests(${name}-test)
+endfunction(add_test_executable name)
+
+# 添加预处理宏
+add_definitions(-D FMT_HEADER_ONLY)
+
+# Prevent GoogleTest from overriding our compiler/linker options
+# when building with Visual Studio
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# Prevent GoogleTest from using PThreads
+set(gtest_disable_pthreads ON CACHE BOOL "" FORCE)
+
+enable_testing()
+
+
 `
 
 var utilsHeader = `#pragma once
@@ -172,21 +205,12 @@ var utilsHeader = `#pragma once
 var utilsCPP = `#include "utils.h"
 `
 
-var testContent = `#include <iostream>
+var testContent = `#include <gtest/gtest.h>
 
-int main() {
-
-    std::cout << "This is a test program" << std::endl;
-
-    return 0;
+// Demonstrate some basic assertions.
+TEST(HelloTest, BasicAssertions) {
+  // Expect two strings not to be equal.
+  EXPECT_STRNE("hello", "ZEL");
+  // Expect equality.
+  EXPECT_EQ(7 * 6, 42);
 }`
-
-var testCmakeLists = `# ---------- {{ .TestName }} ----------
-add_executable({{ .TestName }}-test {{ .TestName }}/{{ .TestName }}_test.cpp)
-target_include_directories({{ .TestName }}-test 
-PUBLIC
-)
-target_link_libraries({{ .TestName }}-test
-PUBLIC
-)
-`

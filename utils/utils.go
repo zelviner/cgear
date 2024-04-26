@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -151,54 +150,6 @@ func MustCheck(err error) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-// 复制文件夹
-func CopyDir(src, dst string) (err error) {
-	return nil
-}
-
-// 创建文件并向其中写入内容
-func WriteToFile(filename string, content string) {
-	f, err := os.Create(filename)
-	MustCheck(err)
-	defer CloseFile(f)
-
-	_, err = f.WriteString(content)
-	MustCheck(err)
-}
-
-// 尝试关闭传递的文件, 如果出错 panic
-func CloseFile(f *os.File) {
-	err := f.Close()
-	MustCheck(err)
-}
-
-// 去除文件中的空行
-func FileTrim(filename string) (content string) {
-	// 打开文件
-	file, err := os.Open(filename)
-	if err != nil {
-		logger.Log.Fatalf("无法打开文件: %s", err)
-		return
-	}
-	defer file.Close()
-
-	// 逐行读取文件内容并去除空行
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line != "" {
-			content += line + "\n"
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		logger.Log.Fatalf("扫描文件时出错: %s", err)
-		return
-	}
-
-	return
 }
 
 func PrintErrorAndExit(message string, errorTemplate string) {

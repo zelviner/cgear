@@ -38,7 +38,7 @@ func init() {
 }
 
 func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) error {
-	err := Build(configArg, buildArg, rebuild)
+	err := Build(configArg, buildArg, rebuild, false)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) 
 	return err
 }
 
-func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) error {
+func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool) error {
 
 	if configArg.Kit == nil {
 		return fmt.Errorf("No kit specified, please use 'zel env kit' to set available kit")
@@ -80,8 +80,11 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) error {
 	// 配置 C++ 项目
 	cmd := exec.Command("cmake", configArg.toStringSlice()...)
 	// logger.Log.Infof("Running 'cmake %s'", cmd.String())
-	// cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	if showInfo {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
+
 	err := cmd.Run()
 	if err != nil {
 		return err
@@ -89,8 +92,10 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool) error {
 
 	// 编译 C++ 项目
 	cmd = exec.Command("cmake", buildArg.toStringSlice()...)
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
+	if showInfo {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 	err = cmd.Run()
 	if err != nil {
 		return err

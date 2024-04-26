@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/cmd/commands/install"
 	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
@@ -90,6 +91,12 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	}
 	logger.Log.Info("Creating C++ project...")
 
+	// 下载 GTest 依赖库
+	err := install.DownloadPKG("git@github.com:google/googletest.git", filepath.Join(projectPath, "vendor"))
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
 	// 创建C++项目所需文件夹
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", projectPath+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(projectPath, 0755)
@@ -118,7 +125,7 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src/utils", "utils.cpp"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.cpp"), utilsCPP)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test", "CMakeLists.txt"), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(projectPath, "test", "CMakeLists.txt"), testsCmakeLists)
+	utils.WriteToFile(filepath.Join(projectPath, "test", "CMakeLists.txt"), testCmakeLists)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "vendor", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "vendor", "CMakeLists.txt"), vendorCmakeLists)
 
@@ -169,7 +176,7 @@ func CreateTestCase(cmd *commands.Command, testname string) {
 	}
 	defer file.Close()
 
-	_, err = file.WriteString(strings.Replace(testCmakeLists, "{{ .TestName }}", filepath.Base(testname), -1))
+	_, err = file.WriteString(fmt.Sprintf("add_test_executable(%s)\n", testname))
 	if err != nil {
 		logger.Log.Fatalf("Write '%s' err: %s", filepath.Join(testsPath, "CMakeLists.txt"), err.Error())
 	}
