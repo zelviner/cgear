@@ -19,12 +19,15 @@ type ConfigArg struct {
 	AppPath               string      // 源代码路径
 	BuildPath             string      // 构建目录
 	Generator             string      // 生成器
+	InstallPrefix         string      // 安装前缀
+	CXXFlags              []string    // C++ 编译参数
 }
 
 // cmake 构建命令参数
 type BuildArg struct {
 	BuildPath string // 构建路径
 	BuildMode string // 构建类型
+	Target    string // 构建目标
 }
 
 var (
@@ -79,8 +82,8 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool
 
 	// 配置 C++ 项目
 	cmd := exec.Command("cmake", configArg.toStringSlice()...)
-	// logger.Log.Infof("Running 'cmake %s'", cmd.String())
 	if showInfo {
+		logger.Log.Infof("Running '%s'", cmd.String())
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
@@ -93,6 +96,7 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool
 	// 编译 C++ 项目
 	cmd = exec.Command("cmake", buildArg.toStringSlice()...)
 	if showInfo {
+		logger.Log.Infof("Running '%s'", cmd.String())
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
@@ -137,6 +141,17 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "-G="+c.Generator)
 	}
 
+	if c.InstallPrefix != "" {
+		result = append(result, "-DCMAKE_INSTALL_PREFIX:PATH="+c.InstallPrefix)
+	}
+
+	if len(c.CXXFlags) > 0 {
+		result = append(result, "-DCMAKE_CXX_FLAGS:STRING="+c.CXXFlags[0])
+		for i := 1; i < len(c.CXXFlags); i++ {
+			result = append(result, "-DCMAKE_CXX_FLAGS:STRING="+c.CXXFlags[i])
+		}
+	}
+
 	return result
 }
 
@@ -146,7 +161,13 @@ func (b *BuildArg) toStringSlice() []string {
 	result = append(result, "--build")
 	result = append(result, b.BuildPath)
 
-	result = append(result, "--config "+b.BuildMode)
+	result = append(result, "--config")
+	result = append(result, b.BuildMode)
+
+	if b.Target != "" {
+		result = append(result, "--target")
+		result = append(result, b.Target)
+	}
 
 	result = append(result, "--")
 
