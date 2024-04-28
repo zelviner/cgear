@@ -94,6 +94,10 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if(WIN32)
+    set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
     # Specify MSVC UTF-8 encoding   
@@ -101,6 +105,9 @@ if(MSVC)
     add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")    
 endif()
+
+# 设置安装路径
+set(CMAKE_INSTALL_PREFIX $ENV{ZEL_C_PATH})
 
 # 设置三方库的安装路径
 list(APPEND CMAKE_PREFIX_PATH $ENV{ZEL_C_PATH})
@@ -112,7 +119,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 # 添加子工程
 add_subdirectory(src)
 add_subdirectory(test)
-add_subdirectory(vendor)
 `
 
 var srcCmakeLists = `# 查找源文件
@@ -174,10 +180,6 @@ foreach(HEADER_DIR ${HEADER_DIRS})
 endforeach()
 `
 
-var vendorCmakeLists = `
-add_subdirectory(googletest)
-`
-
 var testCmakeLists = `function(add_test_executable name)
     file(GLOB_RECURSE files ${name}/*.cpp)
     add_executable(${name}-test ${files})
@@ -187,7 +189,7 @@ var testCmakeLists = `function(add_test_executable name)
     target_link_libraries(${name}-test
     PUBLIC
         ${PROJECT_NAME}
-        gtest_main
+        GTest::gtest_main
         ${ARGN}
     )
     add_test(
@@ -195,22 +197,13 @@ var testCmakeLists = `function(add_test_executable name)
         COMMAND ${name}-test
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
-    include(GoogleTest)
-    gtest_discover_tests(${name}-test)
 endfunction(add_test_executable name)
 
-# 添加预处理宏
-add_definitions(-D FMT_HEADER_ONLY)
-
-# Prevent GoogleTest from overriding our compiler/linker options
-# when building with Visual Studio
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-# Prevent GoogleTest from using PThreads
-set(gtest_disable_pthreads ON CACHE BOOL "" FORCE)
+find_package(GTest REQUIRED)
 
 enable_testing()
 
-
+# 添加测试
 `
 
 var utilsHeader = `#pragma once

@@ -29,7 +29,7 @@ var (
 
 func init() {
 	CmdBuild.Flag.BoolVar(&rebuild, "r", false, "Clear the build folder in the project and rebuild, default false")
-	CmdBuild.Flag.StringVar(&target, "t", "", "Set build type (Debug, Release, RelWithDebInfo, MinSizeRel)")
+	CmdBuild.Flag.StringVar(&target, "t", "", "Set the target to compile")
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdBuild)
 }
 

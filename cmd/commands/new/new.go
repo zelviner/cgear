@@ -36,9 +36,6 @@ var CmdNew = &commands.Command{
             │     └── main.cpp
             ├── {{"test"|foldername}}
             │     └── CMakeLists.txt
-            │     └── test.cpp
-            ├── {{"vendor"|foldername}}
-            │     └── CMakeLists.txt
             ├── {{"docs"|foldername}}
 `,
 	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
@@ -105,8 +102,6 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	os.MkdirAll(filepath.Join(projectPath, "src", "utils"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "test"), 0755)
-	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "vendor")+string(filepath.Separator), "\x1b[0m")
-	os.MkdirAll(filepath.Join(projectPath, "vendor"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "docs"), 0755)
 
@@ -125,8 +120,6 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.cpp"), utilsCPP)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "test", "CMakeLists.txt"), testCmakeLists)
-	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "vendor", "CMakeLists.txt"), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(projectPath, "vendor", "CMakeLists.txt"), vendorCmakeLists)
 
 	logger.Log.Success("New C++ project successfully created!")
 	return 0
