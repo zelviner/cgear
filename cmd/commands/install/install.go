@@ -104,7 +104,6 @@ func install() error {
 		BuildPath:             buildPath,
 		Generator:             "Ninja",
 		InstallPrefix:         zelCPath,
-		CXXFlags:              []string{"-stdlib=libc++", "-static-libstdc++"},
 	}
 
 	buildArg := cmake.BuildArg{

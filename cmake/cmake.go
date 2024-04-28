@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
@@ -20,7 +21,7 @@ type ConfigArg struct {
 	BuildPath             string      // 构建目录
 	Generator             string      // 生成器
 	InstallPrefix         string      // 安装前缀
-	CXXFlags              []string    // C++ 编译参数
+	CXXFlags              string      // C++ 编译参数
 }
 
 // cmake 构建命令参数
@@ -146,10 +147,8 @@ func (c *ConfigArg) toStringSlice() []string {
 	}
 
 	if len(c.CXXFlags) > 0 {
-		result = append(result, "-DCMAKE_CXX_FLAGS:STRING="+c.CXXFlags[0])
-		for i := 1; i < len(c.CXXFlags); i++ {
-			result = append(result, "-DCMAKE_CXX_FLAGS:STRING="+c.CXXFlags[i])
-		}
+		cmakeCXXFlags := fmt.Sprintf("-DCMAKE_CXX_FLAGS_%s:STRING=${CMAKE_CXX_FLAGS_%s} ", strings.ToUpper(c.BuildMode), strings.ToUpper(c.BuildMode)) + c.CXXFlags
+		result = append(result, cmakeCXXFlags)
 	}
 
 	return result
@@ -164,7 +163,7 @@ func (b *BuildArg) toStringSlice() []string {
 	result = append(result, "--config")
 	result = append(result, b.BuildMode)
 
-	if b.Target != "" {
+	if len(b.Target) != 0 {
 		result = append(result, "--target")
 		result = append(result, b.Target)
 	}

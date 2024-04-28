@@ -102,6 +102,9 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")    
 endif()
 
+# 设置三方库的安装路径
+list(APPEND CMAKE_PREFIX_PATH $ENV{ZEL_C_PATH})
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
@@ -149,15 +152,26 @@ PUBLIC
    
 )
 
-# 添加自定义命令，用于复制静态库文件到指定目录
-# add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E copy
-#         $<TARGET_FILE:${PROJECT_NAME}>
-#         "填写要发送的路径 如: D:/Workspaces/C++/Vendor/xhlanguage/lib"
-#     COMMENT "Copying ${PROJECT_NAME} static library to destination directory"
-# )
+# 安装目标
+install(TARGETS ${PROJECT_NAME}
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+)
 
+# 查找头文件上一级目录
+foreach(HEADER ${HEADERS})
+    get_filename_component(HEADER_DIR ${HEADER} DIRECTORY)
+    list(APPEND HEADER_DIRS ${HEADER_DIR})
+endforeach()
 
+# 安装头文件
+foreach(HEADER_DIR ${HEADER_DIRS})
+    install(DIRECTORY ${HEADER_DIR}
+        DESTINATION include/${PROJECT_NAME}
+        FILES_MATCHING PATTERN "*.h"
+    )
+endforeach()
 `
 
 var vendorCmakeLists = `

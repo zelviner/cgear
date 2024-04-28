@@ -51,7 +51,7 @@ type database struct {
 var Conf = Config{
 	WatchExts:          []string{".h", ".hpp", ".cpp"},
 	WatchExtsStatic:    []string{".html", ".tpl", ".js", ".css"},
-	BuildMode:          "Debug",
+	BuildMode:          "Release",
 	Kit:                nil,
 	Database:           database{Driver: "mysql"},
 	EnableNotification: true,

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/install"
 	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
@@ -91,11 +90,11 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	}
 	logger.Log.Info("Creating C++ project...")
 
-	// 下载 GTest 依赖库
-	err := install.DownloadPKG("git@github.com:google/googletest.git", filepath.Join(projectPath, "vendor"))
-	if err != nil {
-		logger.Log.Fatal(err.Error())
-	}
+	// // 下载 GTest 依赖库
+	// err := install.DownloadPKG("git@github.com:google/googletest.git", filepath.Join(projectPath, "vendor"))
+	// if err != nil {
+	// 	logger.Log.Fatal(err.Error())
+	// }
 
 	// 创建C++项目所需文件夹
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", projectPath+string(filepath.Separator), "\x1b[0m")
