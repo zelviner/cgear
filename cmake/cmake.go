@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
@@ -146,10 +145,10 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "-DCMAKE_INSTALL_PREFIX:PATH="+c.InstallPrefix)
 	}
 
-	if len(c.CXXFlags) > 0 {
-		cmakeCXXFlags := fmt.Sprintf("-DCMAKE_CXX_FLAGS_%s:STRING=${CMAKE_CXX_FLAGS_%s} ", strings.ToUpper(c.BuildMode), strings.ToUpper(c.BuildMode)) + c.CXXFlags
-		result = append(result, cmakeCXXFlags)
-	}
+	// if len(c.CXXFlags) > 0 {
+	// 	cmakeCXXFlags := fmt.Sprintf("-DCMAKE_CXX_FLAGS_%s:STRING=${CMAKE_CXX_FLAGS_%s} ", strings.ToUpper(c.BuildMode), strings.ToUpper(c.BuildMode)) + c.CXXFlags
+	// 	result = append(result, cmakeCXXFlags)
+	// }
 
 	return result
 }
@@ -163,9 +162,11 @@ func (b *BuildArg) toStringSlice() []string {
 	result = append(result, "--config")
 	result = append(result, b.BuildMode)
 
+	result = append(result, "--target")
 	if len(b.Target) != 0 {
-		result = append(result, "--target")
 		result = append(result, b.Target)
+	} else {
+		result = append(result, "all")
 	}
 
 	result = append(result, "--")

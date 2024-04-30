@@ -25,19 +25,23 @@ var CmdInstall = &commands.Command{
 
 var (
 	vendorPath string
+	isDebug    bool
 
 	zelCPath = os.Getenv("ZEL_C_PATH")
 )
 
 func init() {
+	CmdInstall.Flag.BoolVar(&isDebug, "d", false, "编译Release模式")
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdInstall)
 }
 
 func installPKG(cmd *commands.Command, args []string) int {
 
-	if len(args) != 1 {
+	if len(args) < 1 {
 		logger.Log.Fatal("请指定第三方库信息, 例如: zel install ZEL-30:zel")
 	}
+
+	cmd.Flag.Parse(args[1:])
 
 	// projectPath, _ := os.Getwd()
 	vendorInfo := args[0]
@@ -95,9 +99,14 @@ func DownloadPKG(ssh string, vendorPath string) error {
 func install() error {
 	buildPath := filepath.Join(vendorPath, "build")
 
+	buildMode := "Release"
+	if isDebug {
+		buildMode = "Debug"
+	}
+
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
-		BuildMode:             "Release",
+		BuildMode:             buildMode,
 		ExportCompileCommands: true,
 		Kit:                   config.Conf.Kit,
 		AppPath:               vendorPath,
@@ -108,7 +117,7 @@ func install() error {
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildMode: "Release",
+		BuildMode: buildMode,
 		Target:    "install",
 	}
 

@@ -34,55 +34,6 @@ TabWidth: 4  #tab键盘的宽度
 var readme = `# {{.ProjectName}}
 `
 
-var buildBat = `@echo off
-setlocal
-
-rem 避免中文乱码
-chcp 65001
-
-rem 检查是否提供了可执行文件名称参数
-if "%1"=="" (
-    echo.
-    echo 请提供可执行文件名称作为参数。例如： .\run.bat hello
-    goto :eof
-)
-
-rem 设置 CMake 和编译目录
-set BUILD_DIR=build
-set EXECUTABLE_PATH=bin
-set EXECUTABLE_NAME=%1.exe
-
-rem 设置 Visual Studio 环境变量
-set VS_PATH="D:\Development\Microsoft Visual Studio\VC\Auxiliary\Build\vcvars32.bat"
-if not exist %VS_PATH% (
-    set VS_PATH="C:\Development\Microsoft Visual Studio\VC\Auxiliary\Build\vcvars32.bat"
-)
-call %VS_PATH%
-
-rem 检查编译目录是否存在，如果存在则删除，然后创建
-if not exist %BUILD_DIR% (
-    mkdir %BUILD_DIR%
-) else (
-    rem 最后一个参数为 rebuild 表示删除原有的编译目录
-    if "%2"=="rebuild" (
-        echo Rebuilding...
-        rmdir /s /q %BUILD_DIR%
-        mkdir %BUILD_DIR%
-    )
-)
-
-rem 进入编译目录
-cd %BUILD_DIR%
-
-rem 使用 CMake 生成项目文件
-"cmake" -G "Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
-
-rem 使用 Ninja 进行编译
-ninja
-
-endlocal
-`
-
 var projectCmakeLists = `# 最低版本
 cmake_minimum_required(VERSION 3.14) 
 
@@ -122,46 +73,46 @@ add_subdirectory(test)
 `
 
 var srcCmakeLists = `# 查找源文件
-file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
+file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
 
 # 查找头文件
-file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.h)
+file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.h ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
 
-#  编译静态库
+# 编译静态库
 add_library(${PROJECT_NAME} "")
 
 target_sources(${PROJECT_NAME}
-PRIVATE
-    ${SOURCES}
-PUBLIC
-    ${HEADERS}
+    PRIVATE
+        ${SOURCES}
+    PUBLIC
+        ${HEADERS}
 )
 
 # 添加头文件
 target_include_directories(${PROJECT_NAME}
-PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}
-   
+    PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}
 )
 
-# 为target添加库文件目录
-target_link_directories(${PROJECT_NAME}
-PUBLIC
-  
-)
+# 为 target 添加库文件目录
+# 如果有需要，可以填入库文件目录路径
+# target_link_directories(${PROJECT_NAME}
+#     PUBLIC
+#         path/to/libraries
+# )
+
+# 为 target 添加需要链接的共享库
+# 如果有需要，可以填入共享库名字
+# TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+#     PUBLIC
+#         library_name
+# )
 
 
-
-# 为target添加需要链接的共享库
-TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-PUBLIC
-   
-)
-
-# 安装目标
+# 安装目标文件
 install(TARGETS ${PROJECT_NAME}
-    LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
 

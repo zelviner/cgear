@@ -46,7 +46,7 @@ func BuildApp(cmd *commands.Command, args []string) int {
 		AppPath:               appPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",
-		CXXFlags:              "-D_MT",
+		CXXFlags:              "-D_MD",
 	}
 
 	buildArg := cmake.BuildArg{
