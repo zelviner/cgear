@@ -2,6 +2,7 @@ package test
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/ZEL-30/zel/cmake"
@@ -46,7 +47,7 @@ func RunTest(cmd *commands.Command, args []string) int {
 	// 默认应用程序路径是当前工作目录
 	appPath, _ := os.Getwd()
 
-	testProgram := args[0] + "-test"
+	testProgram := args[0] + "-test.exe"
 
 	// logger.Log.Infof("Using '%s' as 'appname'", appName)
 
@@ -67,7 +68,18 @@ func RunTest(cmd *commands.Command, args []string) int {
 	}
 
 	// testName := cases.Title(language.English).String(args[0])
-	err := cmake.Run(&configArg, &buildArg, testProgram, rebuild)
+	err := cmake.Build(&configArg, &buildArg, rebuild, false)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
+	runPath := filepath.Join(appPath, "build", "test", testProgram)
+
+	// arg := []string{fmt.Sprintf("--gtest_filter='%s'")}
+	c := exec.Command(runPath)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	err = c.Run()
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}

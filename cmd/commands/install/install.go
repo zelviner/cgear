@@ -5,12 +5,14 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
 	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/logger/colors"
 	"github.com/ZEL-30/zel/utils"
 )
 
@@ -38,7 +40,7 @@ func init() {
 func installPKG(cmd *commands.Command, args []string) int {
 
 	if len(args) < 1 {
-		logger.Log.Fatal("请指定第三方库信息, 例如: zel install ZEL-30:zel")
+		logger.Log.Fatal("Please specify third-party library information, for example: zel install google:googletest")
 	}
 
 	cmd.Flag.Parse(args[1:])
@@ -52,7 +54,7 @@ func installPKG(cmd *commands.Command, args []string) int {
 	}
 
 	if !re.MatchString(vendorInfo) {
-		logger.Log.Fatal("请指定正确的第三方库信息, 例如: google:googletest")
+		logger.Log.Fatal("Please specify the correct third-party library information, for example: google:googletest")
 	}
 
 	Author := re.FindStringSubmatch(vendorInfo)[1]
@@ -61,10 +63,21 @@ func installPKG(cmd *commands.Command, args []string) int {
 	ssh := "git@github.com:" + Author + "/" + repositoryName
 	vendorPath = filepath.Join(zelCPath, "pkg", repositoryName)
 
-	// 判断是否存在
-	if utils.FileIsExisted(vendorPath) {
-		logger.Log.Infof("'%s' 已存在, 更新中...", vendorInfo)
-		os.RemoveAll(vendorPath)
+	if utils.IsExist(vendorPath) {
+		logger.Log.Errorf(colors.Bold("%s '%s' already exists"), vendorInfo, vendorPath)
+		logger.Log.Warn(colors.Bold("Do you want to update it? [Yes]|No "))
+		if utils.AskForConfirmation() {
+			logger.Log.Infof("'%s' already exists, updating ...", vendorInfo)
+			os.RemoveAll(vendorPath)
+		} else {
+			logger.Log.Infof("Installing '%s' ...", vendorInfo)
+			err = install()
+			if err != nil {
+				logger.Log.Fatal(err.Error())
+			}
+			logger.Log.Successf("Successfully installed '%s'", vendorInfo)
+			return 0
+		}
 	}
 
 	err = DownloadPKG(ssh, vendorPath)
@@ -72,18 +85,18 @@ func installPKG(cmd *commands.Command, args []string) int {
 		logger.Log.Fatal(err.Error())
 	}
 
-	logger.Log.Infof("正在安装 '%s'", vendorInfo)
+	logger.Log.Infof("Installing '%s' ...", vendorInfo)
 	err = install()
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
-	logger.Log.Successf("'%s' 安装成功", vendorInfo)
+	logger.Log.Successf("Successfully installed '%s'", vendorInfo)
 	return 0
 }
 
 func DownloadPKG(ssh string, vendorPath string) error {
 
-	logger.Log.Info("正在下载远程库: " + vendorPath)
+	logger.Log.Info("Downloading third-party libraries: " + vendorPath)
 
 	command := exec.Command("git", "clone", ssh, vendorPath, "--depth=1")
 	command.Stdout = os.Stdout
@@ -104,6 +117,8 @@ func install() error {
 		buildMode = "Debug"
 	}
 
+	installPath := filepath.Join(zelCPath, strings.ToLower(buildMode))
+
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
 		BuildMode:             buildMode,
@@ -112,7 +127,7 @@ func install() error {
 		AppPath:               vendorPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",
-		InstallPrefix:         zelCPath,
+		InstallPrefix:         installPath,
 	}
 
 	buildArg := cmake.BuildArg{

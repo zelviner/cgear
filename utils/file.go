@@ -12,18 +12,18 @@ import (
 	"github.com/ZEL-30/zel/logger"
 )
 
-// 检查文件是否存在
-func FileIsExisted(filename string) bool {
-	existed := true
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		existed = false
-	}
-	return existed
-}
+// // 检查文件是否存在
+// func FileIsExisted(filename string) bool {
+// 	existed := true
+// 	if _, err := os.Stat(filename); os.IsNotExist(err) {
+// 		existed = false
+// 	}
+// 	return existed
+// }
 
 // 创建文件夹（如果文件夹不存在则创建）
 func MakeDir(dir string) error {
-	if !FileIsExisted(dir) {
+	if !IsExist(dir) {
 		if err := os.MkdirAll(dir, 0777); err != nil { //os.ModePerm
 			fmt.Println("MakeDir failed:", err)
 			return err
@@ -87,7 +87,7 @@ func CopyDir(srcPath, desPath string) error {
 		if !f.IsDir() {
 			CopyFile(path, destNewPath)
 		} else {
-			if !FileIsExisted(destNewPath) {
+			if !IsExist(destNewPath) {
 				return MakeDir(destNewPath)
 			}
 		}

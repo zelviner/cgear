@@ -38,12 +38,17 @@ var projectCmakeLists = `# 最低版本
 cmake_minimum_required(VERSION 3.14) 
 
 # 设置项目名称
-project({{.ProjectName}})
+project(zeltest)
 
 # 采用C++14标准
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(ZEL_C_PATH $ENV{ZEL_C_PATH}/${CMAKE_BUILD_TYPE})
+
+# 设置安装路径
+set(CMAKE_INSTALL_PREFIX ${ZEL_C_PATH})
 
 if(WIN32)
     set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -57,22 +62,23 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")    
 endif()
 
-# 设置安装路径
-set(CMAKE_INSTALL_PREFIX $ENV{ZEL_C_PATH})
+# 设置三方库的安装路径, 搜索路径, 链接路径
+list(APPEND CMAKE_PREFIX_PATH ${ZEL_C_PATH})
+include_directories(${ZEL_C_PATH}/include)
+link_directories(${ZEL_C_PATH}/lib)
 
-# 设置三方库的安装路径
-list(APPEND CMAKE_PREFIX_PATH $ENV{ZEL_C_PATH})
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+enable_testing()
 
 # 添加子工程
 add_subdirectory(src)
 add_subdirectory(test)
 `
 
-var srcCmakeLists = `# 查找源文件
+var srcCmakeLists = `set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
+# 查找源文件
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
 
 # 查找头文件
@@ -108,7 +114,6 @@ target_include_directories(${PROJECT_NAME}
 #         library_name
 # )
 
-
 # 安装目标文件
 install(TARGETS ${PROJECT_NAME}
     ARCHIVE DESTINATION lib
@@ -116,37 +121,24 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
 )
 
-# 查找头文件上一级目录
-foreach(HEADER ${HEADERS})
-    get_filename_component(HEADER_DIR ${HEADER} DIRECTORY)
-    list(APPEND HEADER_DIRS ${HEADER_DIR})
-endforeach()
-
-# 安装头文件
-foreach(HEADER_DIR ${HEADER_DIRS})
-    install(DIRECTORY ${HEADER_DIR}
-        DESTINATION include/${PROJECT_NAME}
-        FILES_MATCHING PATTERN "*.h"
-    )
-endforeach()
+# 安装目录
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ DESTINATION include/${PROJECT_NAME}
+    FILES_MATCHING PATTERN "*.h"
+    PATTERN "*.hpp"
+)
 `
 
 var testCmakeLists = `function(add_test_executable name)
     file(GLOB_RECURSE files ${name}/*.cpp)
     add_executable(${name}-test ${files})
     target_include_directories(${name}-test 
-    PUBLIC
+        PUBLIC
     )
     target_link_libraries(${name}-test
-    PUBLIC
-        ${PROJECT_NAME}
-        GTest::gtest_main
-        ${ARGN}
-    )
-    add_test(
-        NAME ${name}-test
-        COMMAND ${name}-test
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        PUBLIC
+            ${PROJECT_NAME}
+            GTest::gtest_main
+            ${ARGN}
     )
 endfunction(add_test_executable name)
 
