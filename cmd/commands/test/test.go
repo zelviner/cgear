@@ -1,9 +1,11 @@
 package test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 
 	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
@@ -47,6 +49,17 @@ func RunTest(cmd *commands.Command, args []string) int {
 	// 默认应用程序路径是当前工作目录
 	appPath, _ := os.Getwd()
 
+	re, err := regexp.Compile(`(\w+).(\w+)`)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
+	testInfo := re.FindStringSubmatch(args[0])
+
+	fmt.Println(testInfo)
+
+	return 0
+
 	testProgram := args[0] + "-test.exe"
 
 	// logger.Log.Infof("Using '%s' as 'appname'", appName)
@@ -68,7 +81,7 @@ func RunTest(cmd *commands.Command, args []string) int {
 	}
 
 	// testName := cases.Title(language.English).String(args[0])
-	err := cmake.Build(&configArg, &buildArg, rebuild, false)
+	err = cmake.Build(&configArg, &buildArg, rebuild, false)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
