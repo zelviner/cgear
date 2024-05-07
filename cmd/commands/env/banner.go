@@ -3,7 +3,6 @@ package env
 import (
 	"io"
 	"os"
-	"path/filepath"
 	"text/template"
 	"time"
 
@@ -13,7 +12,7 @@ import (
 
 type EnvInfo struct {
 	ZelVersion string
-	ZelCPath   string
+	ZelPath    string
 	BuildMode  string
 	BuildKit   string
 	TestMode   string
@@ -53,14 +52,10 @@ func show(out io.Writer, content string) {
 		envInfo.BuildKit = config.Conf.Kit.Name
 	}
 
-	if cPath := os.Getenv("ZEL_C_PATH"); cPath != "" {
-		envInfo.ZelCPath = cPath
+	if cPath := os.Getenv("ZELPATH"); cPath != "" {
+		envInfo.ZelPath = cPath
 	} else {
-		// envInfo.ZelCPath = "N/A"
-		// 将 zel 安装路径设置为 C_PATH
-		cPathj := filepath.Dir(os.Args[0])
-		os.Setenv("ZEL_C_PATH", cPathj)
-		envInfo.ZelCPath = cPathj
+		envInfo.ZelPath = config.Conf.ZelPath
 	}
 
 	err = t.Execute(out, envInfo)

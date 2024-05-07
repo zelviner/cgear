@@ -29,7 +29,7 @@ var (
 	vendorPath string
 	isDebug    bool
 
-	zelCPath = os.Getenv("ZEL_C_PATH")
+	zelPath = os.Getenv("ZELPATH")
 )
 
 func init() {
@@ -61,7 +61,7 @@ func installPKG(cmd *commands.Command, args []string) int {
 	repositoryName := re.FindStringSubmatch(vendorInfo)[2]
 
 	ssh := "git@github.com:" + Author + "/" + repositoryName
-	vendorPath = filepath.Join(zelCPath, "pkg", repositoryName)
+	vendorPath = filepath.Join(zelPath, "pkg", repositoryName)
 
 	if utils.IsExist(vendorPath) {
 		logger.Log.Errorf(colors.Bold("%s '%s' already exists"), vendorInfo, vendorPath)
@@ -117,7 +117,7 @@ func install() error {
 		buildMode = "Debug"
 	}
 
-	installPath := filepath.Join(zelCPath, strings.ToLower(buildMode))
+	installPath := filepath.Join(zelPath, strings.ToLower(buildMode))
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,

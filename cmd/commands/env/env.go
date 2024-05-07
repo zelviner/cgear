@@ -15,7 +15,7 @@ const envInfoTemplate string = `%s%s _____     _
  / //\  __/ |__
 /____/\___|___/  v{{ .ZelVersion }}%s
 %s%s
-├── ZelCPath  : {{ .ZelCPath }}
+├── ZelPath   : {{ .ZelPath }}
 ├── BuildKit  : {{ .BuildKit }}
 ├── BuildMode : {{ .BuildMode }}
 ├── TestMode  : {{ .TestMode }}

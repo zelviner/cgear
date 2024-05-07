@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"gopkg.in/yaml.v2"
@@ -21,6 +22,7 @@ type Config struct {
 	Version            int
 	WatchExts          []string `json:"watch_exts" yaml:"watch_exts"`
 	WatchExtsStatic    []string `json:"watch_exts_static" yaml:"watch_exts_static"`
+	ZelPath            string   `json:"zel_path" yaml:"zel_path"`
 	Kit                *Kit     `json:"kit" yaml:"kit"`
 	BuildMode          string   `json:"build_mode" yaml:"build_mode"`
 	TestMode           string   `json:"test_mode" yaml:"test_mode"`
@@ -51,7 +53,7 @@ type database struct {
 var Conf = Config{
 	WatchExts:          []string{".h", ".hpp", ".cpp"},
 	WatchExtsStatic:    []string{".html", ".tpl", ".js", ".css"},
-	BuildMode:          "Release",
+	BuildMode:          "Debug",
 	Kit:                nil,
 	Database:           database{Driver: "mysql"},
 	EnableNotification: true,
@@ -101,6 +103,21 @@ func LaodConfig() {
 	if Conf.Version != confVer {
 		logger.Log.Warn("Your configuartion file is outdated. Please do consider updating is.")
 		logger.Log.Hint("Check the latest version of zel's configuration file.")
+	}
+
+	// 设置ZelPath环境变量
+	if Conf.ZelPath == "" {
+		userProfile := os.Getenv("USERPROFILE")
+		Conf.ZelPath = filepath.Join(userProfile, "zel")
+
+		cmd := exec.Command("SETX", "ZELPATH", Conf.ZelPath)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			logger.Log.Fatal(err.Error())
+		}
 	}
 
 }
