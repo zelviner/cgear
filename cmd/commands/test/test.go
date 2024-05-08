@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
+	"strings"
 
 	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
@@ -49,20 +49,19 @@ func RunTest(cmd *commands.Command, args []string) int {
 	// 默认应用程序路径是当前工作目录
 	appPath, _ := os.Getwd()
 
-	re, err := regexp.Compile(`(\w+).(\w+)`)
-	if err != nil {
-		logger.Log.Fatal(err.Error())
+	var (
+		testProgram string
+		testName    string
+	)
+	if index := strings.Index(args[0], "."); index == -1 {
+		testProgram = args[0] + "-test.exe"
+		fmt.Println(testProgram)
+	} else {
+		testProgram = args[0][:index] + "-test.exe"
+		testName = args[0][index+1:]
+		fmt.Println(testProgram)
+		fmt.Println(testName)
 	}
-
-	testInfo := re.FindStringSubmatch(args[0])
-
-	fmt.Println(testInfo)
-
-	return 0
-
-	testProgram := args[0] + "-test.exe"
-
-	// logger.Log.Infof("Using '%s' as 'appname'", appName)
 
 	buildPath := filepath.Join(appPath, "build")
 	configArg := cmake.ConfigArg{
@@ -81,15 +80,15 @@ func RunTest(cmd *commands.Command, args []string) int {
 	}
 
 	// testName := cases.Title(language.English).String(args[0])
-	err = cmake.Build(&configArg, &buildArg, rebuild, false)
+	err := cmake.Build(&configArg, &buildArg, rebuild, false)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
 
 	runPath := filepath.Join(appPath, "build", "test", testProgram)
 
-	// arg := []string{fmt.Sprintf("--gtest_filter='%s'")}
-	c := exec.Command(runPath)
+	arg := fmt.Sprintf("--gtest_filter='%s'", args[0])
+	c := exec.Command(runPath, arg)
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	err = c.Run()

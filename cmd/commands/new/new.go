@@ -158,7 +158,7 @@ func CreateTestCase(cmd *commands.Command, testname string) {
 
 	// 创建C++项目所需文件
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(testPath, testFileName), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(testPath, testFileName), testContent)
+	utils.WriteToFile(filepath.Join(testPath, testFileName), strings.Replace(testContent, "{{ .testFile }}", testname, -1))
 
 	// 向 cmakelists 中 追加写入内容
 	fmt.Fprintf(output, "\t%s%sadd%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(testsPath, "CMakeLists.txt"), "\x1b[0m")

@@ -45,10 +45,10 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(ZEL_C_PATH $ENV{ZEL_C_PATH}/${CMAKE_BUILD_TYPE})
+set(ZELPATH $ENV{ZELPATH}/${CMAKE_BUILD_TYPE})
 
 # 设置安装路径
-set(CMAKE_INSTALL_PREFIX ${ZEL_C_PATH})
+set(CMAKE_INSTALL_PREFIX ${ZELPATH})
 
 if(WIN32)
     set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -63,9 +63,9 @@ if(MSVC)
 endif()
 
 # 设置三方库的安装路径, 搜索路径, 链接路径
-list(APPEND CMAKE_PREFIX_PATH ${ZEL_C_PATH})
-include_directories(${ZEL_C_PATH}/include)
-link_directories(${ZEL_C_PATH}/lib)
+list(APPEND CMAKE_PREFIX_PATH ${ZELPATH})
+include_directories(${ZELPATH}/include)
+link_directories(${ZELPATH}/lib)
 
 enable_testing()
 
@@ -158,7 +158,7 @@ var utilsCPP = `#include "utils.h"
 var testContent = `#include <gtest/gtest.h>
 
 // Demonstrate some basic assertions.
-TEST(HelloTest, BasicAssertions) {
+TEST({{ .testFile }}, demo) {
   // Expect two strings not to be equal.
   EXPECT_STRNE("hello", "ZEL");
   // Expect equality.

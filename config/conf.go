@@ -106,7 +106,7 @@ func LaodConfig() {
 	}
 
 	// 设置ZelPath环境变量
-	if Conf.ZelPath == "" {
+	if zelPath := os.Getenv("ZELPATH"); zelPath == "" {
 		userProfile := os.Getenv("USERPROFILE")
 		Conf.ZelPath = filepath.Join(userProfile, "zel")
 
