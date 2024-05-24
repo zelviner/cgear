@@ -140,3 +140,22 @@ func FileTrim(filename string) (content string) {
 
 	return
 }
+
+func ReplaceFileContent(filename string, old string, new string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+
+	defer CloseFile(file)
+
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	content := strings.Replace(string(bytes), old, new, -1)
+	WriteToFile(filename, content)
+
+	return err
+}

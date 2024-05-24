@@ -36,6 +36,8 @@ var CmdNew = &commands.Command{
             │     └── main.cpp
             ├── {{"test"|foldername}}
             │     └── CMakeLists.txt
+            ├── {{".vecode"|foldername}}
+            │     └── launch.json
             ├── {{"docs"|foldername}}
 `,
 	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
@@ -102,6 +104,8 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	os.MkdirAll(filepath.Join(projectPath, "src", "utils"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "test"), 0755)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vecode")+string(filepath.Separator), "\x1b[0m")
+	os.MkdirAll(filepath.Join(projectPath, ".vscode"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "docs"), 0755)
 
@@ -120,6 +124,8 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.cpp"), utilsCPP)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "test", "CMakeLists.txt"), testCmakeLists)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vsocde", "CMakeLists.txt"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, ".vscode", "launch.json"), launch)
 
 	logger.Log.Success("New C++ project successfully created!")
 	return 0
@@ -129,19 +135,21 @@ func CreateProjectWithQt(cmd *commands.Command, args []string) {
 
 }
 
-func CreateTestCase(cmd *commands.Command, testname string) {
+func CreateTestCase(cmd *commands.Command, testName string) {
 
 	output := cmd.Out()
 
 	var (
-		testPath     string
-		testsPath    string
-		testFileName string
+		testPath       string
+		testsPath      string
+		testFileName   string
+		testConfigPath string
 	)
 
 	testsPath = filepath.Join(utils.GetZelWorkPath(), "test")
-	testPath = filepath.Join(utils.GetZelWorkPath(), "test", testname)
-	testFileName = testname + "_test.cpp"
+	testPath = filepath.Join(utils.GetZelWorkPath(), "test", testName)
+	testFileName = testName + "_test.cpp"
+	testConfigPath = filepath.Join(utils.GetZelWorkPath(), ".vscode", "launch.json")
 
 	if utils.IsExist(testPath) {
 		logger.Log.Errorf(colors.Bold("Test case '%s' already exists"), testPath)
@@ -158,9 +166,11 @@ func CreateTestCase(cmd *commands.Command, testname string) {
 
 	// 创建C++项目所需文件
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(testPath, testFileName), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(testPath, testFileName), strings.Replace(testContent, "{{ .testFile }}", testname, -1))
+	utils.WriteToFile(filepath.Join(testPath, testFileName), strings.Replace(testContent, "{{ .testName }}", testName, -1))
+	utils.ReplaceFileContent(testConfigPath, "//{{ .configuration }}", testLaunch)
+	utils.ReplaceFileContent(testConfigPath, "{{ .testName }}", testName)
 
-	// 向 cmakelists 中 追加写入内容
+	// 向 test/cmakelists 中 追加写入内容
 	fmt.Fprintf(output, "\t%s%sadd%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(testsPath, "CMakeLists.txt"), "\x1b[0m")
 	file, err := os.OpenFile(filepath.Join(testsPath, "CMakeLists.txt"), os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
@@ -168,7 +178,7 @@ func CreateTestCase(cmd *commands.Command, testname string) {
 	}
 	defer file.Close()
 
-	_, err = file.WriteString(fmt.Sprintf("add_test_executable(%s)\n", testname))
+	_, err = file.WriteString(fmt.Sprintf("add_test_executable(%s)\n", testName))
 	if err != nil {
 		logger.Log.Fatalf("Write '%s' err: %s", filepath.Join(testsPath, "CMakeLists.txt"), err.Error())
 	}

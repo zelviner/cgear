@@ -155,12 +155,31 @@ var utilsHeader = `#pragma once
 var utilsCPP = `#include "utils.h"
 `
 
+var launch = `{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        //{{ .configuration }}
+    ]
+}
+`
+
 var testContent = `#include <gtest/gtest.h>
 
-// Demonstrate some basic assertions.
-TEST({{ .testFile }}, demo) {
-  // Expect two strings not to be equal.
-  EXPECT_STRNE("hello", "ZEL");
-  // Expect equality.
-  EXPECT_EQ(7 * 6, 42);
+TEST({{ .testName }}, demo) {
+ 
+
 }`
+
+var testLaunch = `{
+            "type": "lldb",
+            "request": "launch",
+            "name": "{{ .testName }}-test",
+            "program": "${workspaceFolder}/build/test/{{ .testName }}-test.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        //{{ .configuration }}
+`
