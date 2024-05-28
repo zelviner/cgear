@@ -96,7 +96,6 @@ func showTest() {
 					fmt.Println(`    │    └── ` + testInfo[2:])
 
 				}
-
 			}
 
 		}
@@ -113,11 +112,13 @@ func runTest(testName string) {
 		testProgram string
 		testExe     string
 	)
+
 	if index := strings.Index(testName, "."); index == -1 {
-		testProgram = testName + "-test.exe"
+
+		testProgram = getTestProgramName(testName) + "-test.exe"
 		testName += "*"
 	} else {
-		testProgram = testName[:index] + "-test.exe"
+		testProgram = getTestProgramName(testName[:index]) + "-test.exe"
 	}
 
 	configArg := cmake.ConfigArg{
@@ -152,4 +153,22 @@ func runTest(testName string) {
 		logger.Log.Fatal(err.Error())
 	}
 
+}
+
+func getTestProgramName(testName string) string {
+	var result []byte
+
+	for i, letter := range testName {
+		if letter >= 65 && letter <= 90 {
+			if i == 0 {
+				result = append(result, byte(letter+32))
+				continue
+			}
+			result = append(result, '-')
+			result = append(result, byte(letter+32))
+		} else {
+			result = append(result, byte(letter))
+		}
+	}
+	return string(result)
 }

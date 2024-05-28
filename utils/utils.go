@@ -15,6 +15,8 @@ import (
 	"github.com/ZEL-30/zel/internal/pkg/system"
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type Repos struct {
@@ -226,4 +228,14 @@ func GetLastPublishedTime() string {
 	}
 
 	return string(t[:read])
+}
+
+func CapitalizeFirstLetter(word string) string {
+	var capFirstLetter string
+	words := strings.Split(word, "-")
+	for _, word := range words {
+		capFirstLetter += cases.Title(language.English).String(word)
+	}
+
+	return capFirstLetter
 }

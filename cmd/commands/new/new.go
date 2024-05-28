@@ -27,7 +27,9 @@ var CmdNew = &commands.Command{
 
             ├── CMakeLists.txt
             ├── .clang-format
+            ├── .gitignore
             ├── README.md
+            ├── LICENSE.txt
             ├── {{"src"|foldername}}
             │     └── CMakeLists.txt
             │     └── {{"utils"|foldername}}
@@ -108,12 +110,20 @@ func CreateProject(cmd *commands.Command, appname string) int {
 	os.MkdirAll(filepath.Join(projectPath, ".vscode"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "docs"), 0755)
+	// fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "res")+string(filepath.Separator), "\x1b[0m")
+	// os.MkdirAll(filepath.Join(projectPath, "res"), 0755)
+	// fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "res", "images")+string(filepath.Separator), "\x1b[0m")
+	// os.MkdirAll(filepath.Join(projectPath, "res", "images"), 0755)
 
 	// 创建C++项目所需文件
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "CMakeLists.txt"), strings.Replace(projectCmakeLists, "{{.ProjectName}}", filepath.Base(appname), -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".clang-format"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, ".clang-format"), clangFormat)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".gitignore"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, ".gitignore"), gitignore)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "LICENSE.txt"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "LICENSE.txt"), license)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "README.md"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "README.md"), strings.Replace(readme, "{{.ProjectName}}", filepath.Base(appname), -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src", "CMakeLists.txt"), "\x1b[0m")
@@ -166,7 +176,7 @@ func CreateTestCase(cmd *commands.Command, testName string) {
 
 	// 创建C++项目所需文件
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(testPath, testFileName), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(testPath, testFileName), strings.Replace(testContent, "{{ .testName }}", testName, -1))
+	utils.WriteToFile(filepath.Join(testPath, testFileName), strings.Replace(testContent, "{{ .testName }}", utils.CapitalizeFirstLetter(testName), -1))
 	utils.ReplaceFileContent(testConfigPath, "//{{ .configuration }}", testLaunch)
 	utils.ReplaceFileContent(testConfigPath, "{{ .testName }}", testName)
 
