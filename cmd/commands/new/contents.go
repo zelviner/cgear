@@ -344,7 +344,7 @@ var launch = `{
 
 var testContent = `#include <gtest/gtest.h>
 
-TEST({{ .testName }}, Demo) {
+TEST({{ .testName }}, demo) {
  
 
 }`
