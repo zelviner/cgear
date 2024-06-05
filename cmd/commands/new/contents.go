@@ -214,7 +214,8 @@ var projectCmakeLists = `# 最低版本
 cmake_minimum_required(VERSION 3.14) 
 
 # 设置项目名称
-project(zeltest)
+project({{.ProjectName}})
+set(LIB_NAME {{.ProjectName}})
 
 # 采用C++14标准
 set(CMAKE_CXX_STANDARD 14)
@@ -261,9 +262,9 @@ file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
 file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.h ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
 
 # 编译静态库
-add_library(${PROJECT_NAME} "")
+add_library(${LIB_NAME} "")
 
-target_sources(${PROJECT_NAME}
+target_sources(${LIB_NAME}
     PRIVATE
         ${SOURCES}
     PUBLIC
@@ -271,34 +272,35 @@ target_sources(${PROJECT_NAME}
 )
 
 # 添加头文件
-target_include_directories(${PROJECT_NAME}
+target_include_directories(${LIB_NAME}
     PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
 # 为 target 添加库文件目录
 # 如果有需要，可以填入库文件目录路径
-# target_link_directories(${PROJECT_NAME}
+# target_link_directories(${LIB_NAME}
 #     PUBLIC
 #         path/to/libraries
 # )
 
 # 为 target 添加需要链接的共享库
 # 如果有需要，可以填入共享库名字
-# TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+# TARGET_LINK_LIBRARIES(${LIB_NAME}
 #     PUBLIC
 #         library_name
 # )
 
 # 安装目标文件
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${LIB_NAME}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
 
 # 安装目录
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ DESTINATION include/${PROJECT_NAME}
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include/${LIB_NAME})
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ DESTINATION include/${LIB_NAME}
     FILES_MATCHING PATTERN "*.h"
     PATTERN "*.hpp"
 )
@@ -312,7 +314,7 @@ var testCmakeLists = `function(add_test_executable name)
     )
     target_link_libraries(${name}-test
         PUBLIC
-            ${PROJECT_NAME}
+            ${LIB_NAME}
             GTest::gtest_main
             ${ARGN}
     )
@@ -344,7 +346,7 @@ var launch = `{
 
 var testContent = `#include <gtest/gtest.h>
 
-TEST({{ .testName }}, demo) {
+TEST({{ .testName }}, class) {
  
 
 }`

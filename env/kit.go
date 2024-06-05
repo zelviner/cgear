@@ -24,7 +24,7 @@ var (
 		"Clang-cl": "clang-cpp.exe",
 		"Mingw":    "g++.exe",
 	}
-	buildModes = []string{
+	buildTypes = []string{
 		"Debug",
 		"Release",
 		"RelWithDebInfo",
@@ -194,11 +194,11 @@ func getKit(compiler Compiler) (*config.Kit, error) {
 	return &kit, nil
 }
 
-func SetBuildMode() {
+func SetBuildType() {
 	logger.Log.Info("Please select a build type:")
 
-	for i, buildMode := range buildModes {
-		fmt.Printf("\t[%d] %s\n", i+1, buildMode)
+	for i, buildType := range buildTypes {
+		fmt.Printf("\t[%d] %s\n", i+1, buildType)
 	}
 
 	var (
@@ -211,8 +211,8 @@ func SetBuildMode() {
 		logger.Log.Error(err.Error())
 	}
 
-	config.Conf.BuildMode = buildModes[modeIndex]
+	config.Conf.BuildType = buildTypes[modeIndex]
 	config.SaveConfig()
-	logger.Log.Successf("Successfully set build type: %s", config.Conf.BuildMode)
+	logger.Log.Successf("Successfully set build type: %s", config.Conf.BuildType)
 
 }

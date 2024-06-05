@@ -17,8 +17,7 @@ const envInfoTemplate string = `%s%s _____     _
 %s%s
 ├── ZelPath   : {{ .ZelPath }}
 ├── BuildKit  : {{ .BuildKit }}
-├── BuildMode : {{ .BuildMode }}
-├── TestMode  : {{ .TestMode }}
+├── BuildType : {{ .BuildType }}
 └── Date      : {{ Now "Monday, 2 Jan 2006" }}%s
 `
 
@@ -29,12 +28,10 @@ var CmdEnv = &commands.Command{
 
      $ zel env kit
 
-  ▶ {{"To set build mode for your C++ project:"|bold}}
+  ▶ {{"To set build type for your C++ project:"|bold}}
 
-     $ zel env mode
-  ▶ {{"To set build mode for your C++ project:"|bold}}
+     $ zel env type
 
-     $ zel env mode
 `,
 	Run: SetEnv,
 }
@@ -52,8 +49,8 @@ func SetEnv(cmd *commands.Command, args []string) int {
 		case "kit":
 			env.SetBuildKit()
 
-		case "mode":
-			env.SetBuildMode()
+		case "type":
+			env.SetBuildType()
 
 		case "test":
 

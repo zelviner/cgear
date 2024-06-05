@@ -1,22 +1,22 @@
 package cmake
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/ZEL-30/zel/config"
+	"github.com/ZEL-30/zel/env"
 	"github.com/ZEL-30/zel/logger"
 )
 
 // cmake 配置命令参数
 type ConfigArg struct {
 	NoWarnUnusedCli       bool        // 不警告在命令行声明但未使用的变量
-	BuildMode             string      // 构建类型
+	BuildType             string      // 构建类型
 	ExportCompileCommands bool        // 导出编译命令
 	Kit                   *config.Kit // 编译器
-	AppPath               string      // 源代码路径
+	ProjectPath           string      // 源代码路径
 	BuildPath             string      // 构建目录
 	Generator             string      // 生成器
 	InstallPrefix         string      // 安装前缀
@@ -26,7 +26,7 @@ type ConfigArg struct {
 // cmake 构建命令参数
 type BuildArg struct {
 	BuildPath string // 构建路径
-	BuildMode string // 构建类型
+	BuildType string // 构建类型
 	Target    string // 构建目标
 }
 
@@ -69,7 +69,8 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) 
 func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool) error {
 
 	if configArg.Kit == nil {
-		return fmt.Errorf("No kit specified, please use 'zel env kit' to set available kit")
+		env.SetBuildKit()
+		configArg.Kit = config.Conf.Kit
 	}
 
 	// 检查是否需要重新构建
@@ -115,7 +116,7 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "--no-warn-unused-cli")
 	}
 
-	result = append(result, "-DCMAKE_BUILD_TYPE:STRING="+c.BuildMode)
+	result = append(result, "-DCMAKE_BUILD_TYPE:STRING="+c.BuildType)
 
 	if c.ExportCompileCommands {
 		result = append(result, "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE")
@@ -129,8 +130,8 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "-DCMAKE_CXX_COMPILER:FILEPATH="+c.Kit.Compiler.CXX)
 	}
 
-	if c.AppPath != "" {
-		result = append(result, "-S"+c.AppPath)
+	if c.ProjectPath != "" {
+		result = append(result, "-S"+c.ProjectPath)
 	}
 
 	if c.BuildPath != "" {
@@ -145,11 +146,6 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "-DCMAKE_INSTALL_PREFIX:PATH="+c.InstallPrefix)
 	}
 
-	// if len(c.CXXFlags) > 0 {
-	// 	cmakeCXXFlags := fmt.Sprintf("-DCMAKE_CXX_FLAGS_%s:STRING=${CMAKE_CXX_FLAGS_%s} ", strings.ToUpper(c.BuildMode), strings.ToUpper(c.BuildMode)) + c.CXXFlags
-	// 	result = append(result, cmakeCXXFlags)
-	// }
-
 	return result
 }
 
@@ -160,7 +156,7 @@ func (b *BuildArg) toStringSlice() []string {
 	result = append(result, b.BuildPath)
 
 	result = append(result, "--config")
-	result = append(result, b.BuildMode)
+	result = append(result, b.BuildType)
 
 	result = append(result, "--target")
 	if len(b.Target) != 0 {

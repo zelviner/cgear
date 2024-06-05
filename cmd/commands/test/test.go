@@ -123,17 +123,17 @@ func runTest(testName string) {
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
-		BuildMode:             config.Conf.BuildMode,
+		BuildType:             config.Conf.BuildType,
 		ExportCompileCommands: true,
 		Kit:                   config.Conf.Kit,
-		AppPath:               appPath,
+		ProjectPath:           appPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",
 	}
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildMode: config.Conf.BuildMode,
+		BuildType: config.Conf.BuildType,
 	}
 
 	// testName := cases.Title(language.English).String(testName)

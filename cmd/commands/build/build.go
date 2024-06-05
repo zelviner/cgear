@@ -40,10 +40,10 @@ func BuildApp(cmd *commands.Command, args []string) int {
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
-		BuildMode:             config.Conf.BuildMode,
+		BuildType:             config.Conf.BuildType,
 		ExportCompileCommands: true,
 		Kit:                   config.Conf.Kit,
-		AppPath:               appPath,
+		ProjectPath:           appPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",
 		CXXFlags:              "-D_MD",
@@ -51,7 +51,7 @@ func BuildApp(cmd *commands.Command, args []string) int {
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildMode: config.Conf.BuildMode,
+		BuildType: config.Conf.BuildType,
 		Target:    target,
 	}
 

@@ -24,8 +24,7 @@ type Config struct {
 	WatchExtsStatic    []string `json:"watch_exts_static" yaml:"watch_exts_static"`
 	ZelPath            string   `json:"zel_path" yaml:"zel_path"`
 	Kit                *Kit     `json:"kit" yaml:"kit"`
-	BuildMode          string   `json:"build_mode" yaml:"build_mode"`
-	TestMode           string   `json:"test_mode" yaml:"test_mode"`
+	BuildType          string   `json:"build_type" yaml:"build_type"`
 	Database           database
 	EnableReload       bool `json:"enable_reload" yaml:"enable_reload"`
 	EnableNotification bool `json:"enable_notification" yaml:"enable_notification"`
@@ -53,7 +52,7 @@ type database struct {
 var Conf = Config{
 	WatchExts:          []string{".h", ".hpp", ".cpp"},
 	WatchExtsStatic:    []string{".html", ".tpl", ".js", ".css"},
-	BuildMode:          "Debug",
+	BuildType:          "Debug",
 	Kit:                nil,
 	Database:           database{Driver: "mysql"},
 	EnableNotification: true,

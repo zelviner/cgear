@@ -17,36 +17,50 @@ import (
 )
 
 var CmdInstall = &commands.Command{
-	UsageLine: "install",
-	Short:     "",
+	UsageLine: "install []",
+	Short:     "Downloading and installing C++ third-party open source libraries from GitHub",
 	Long: `
 `,
 	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
-	Run:    installPKG,
+	Run:    install,
 }
 
 var (
 	vendorPath string
-	isDebug    bool
+	vendorInfo string
 
 	zelPath = os.Getenv("ZELPATH")
 )
 
 func init() {
-	CmdInstall.Flag.BoolVar(&isDebug, "d", false, "编译Release模式")
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdInstall)
 }
 
-func installPKG(cmd *commands.Command, args []string) int {
+func install(cmd *commands.Command, args []string) int {
 
-	if len(args) < 1 {
-		logger.Log.Fatal("Please specify third-party library information, for example: zel install google:googletest")
+	switch len(args) {
+	case 0:
+		vendorPath, _ = os.Getwd()
+		vendorInfo = filepath.Base(vendorPath)
+	case 1:
+		cmd.Flag.Parse(args[1:])
+		vendorInfo = args[0]
+		getPKG()
+	default:
+		logger.Log.Fatal("Too many parameters")
 	}
 
-	cmd.Flag.Parse(args[1:])
+	logger.Log.Infof("Installing '%s' ...", vendorInfo)
+	err := installPKG()
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
 
-	// projectPath, _ := os.Getwd()
-	vendorInfo := args[0]
+	logger.Log.Successf("Successfully installed '%s'", vendorInfo)
+	return 0
+}
+
+func getPKG() {
 
 	re, err := regexp.Compile("(.+):(.+)")
 	if err != nil {
@@ -70,13 +84,7 @@ func installPKG(cmd *commands.Command, args []string) int {
 			logger.Log.Infof("'%s' already exists, updating ...", vendorInfo)
 			os.RemoveAll(vendorPath)
 		} else {
-			logger.Log.Infof("Installing '%s' ...", vendorInfo)
-			err = install()
-			if err != nil {
-				logger.Log.Fatal(err.Error())
-			}
-			logger.Log.Successf("Successfully installed '%s'", vendorInfo)
-			return 0
+			return
 		}
 	}
 
@@ -84,14 +92,6 @@ func installPKG(cmd *commands.Command, args []string) int {
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
-
-	logger.Log.Infof("Installing '%s' ...", vendorInfo)
-	err = install()
-	if err != nil {
-		logger.Log.Fatal(err.Error())
-	}
-	logger.Log.Successf("Successfully installed '%s'", vendorInfo)
-	return 0
 }
 
 func DownloadPKG(ssh string, vendorPath string) error {
@@ -109,22 +109,17 @@ func DownloadPKG(ssh string, vendorPath string) error {
 	return nil
 }
 
-func install() error {
+func installPKG() error {
 	buildPath := filepath.Join(vendorPath, "build")
-
-	buildMode := "Release"
-	if isDebug {
-		buildMode = "Debug"
-	}
-
-	installPath := filepath.Join(zelPath, strings.ToLower(buildMode))
+	buildType := "Debug"
+	installPath := filepath.Join(zelPath, strings.ToLower(buildType))
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
-		BuildMode:             buildMode,
+		BuildType:             buildType,
 		ExportCompileCommands: true,
 		Kit:                   config.Conf.Kit,
-		AppPath:               vendorPath,
+		ProjectPath:           vendorPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",
 		InstallPrefix:         installPath,
@@ -132,11 +127,23 @@ func install() error {
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildMode: buildMode,
+		BuildType: buildType,
 		Target:    "install",
 	}
 
+	// Debug
 	err := cmake.Build(&configArg, &buildArg, true, true)
+	if err != nil {
+		return err
+	}
+
+	// Release
+	buildType = "Release"
+	installPath = filepath.Join(zelPath, strings.ToLower(buildType))
+	configArg.BuildType = buildType
+	configArg.InstallPrefix = installPath
+	buildArg.BuildType = buildType
+	err = cmake.Build(&configArg, &buildArg, true, true)
 	if err != nil {
 		return err
 	}
