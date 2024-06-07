@@ -14,6 +14,7 @@ import (
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
+	"github.com/ZEL-30/zel/utils"
 )
 
 var CmdTest = &commands.Command{
@@ -41,8 +42,7 @@ func init() {
 
 func RunTest(cmd *commands.Command, args []string) int {
 
-	// 默认应用程序路径是当前工作目录
-	appPath, _ := os.Getwd()
+	appPath := utils.GetZelWorkPath()
 	buildPath = filepath.Join(appPath, "build")
 	testPath = filepath.Join(buildPath, "test")
 

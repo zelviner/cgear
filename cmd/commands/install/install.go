@@ -40,7 +40,7 @@ func install(cmd *commands.Command, args []string) int {
 
 	switch len(args) {
 	case 0:
-		vendorPath, _ = os.Getwd()
+		vendorPath = utils.GetZelWorkPath()
 		vendorInfo = filepath.Base(vendorPath)
 	case 1:
 		cmd.Flag.Parse(args[1:])

@@ -40,7 +40,7 @@ TabWidth: 4  #tab键盘的宽度
 
 var readme = `
 
-# {{.ProjectName}}
+# {{ .ProjectName }}
 
 ProjectName and Description
 
@@ -210,21 +210,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 `
 
-var projectCmakeLists = `# 最低版本
+var projectCMakeLists = `# 最低版本
 cmake_minimum_required(VERSION 3.14) 
 
 # 设置项目名称
-project({{.ProjectName}})
-set(LIB_NAME {{.ProjectName}})
+project({{ .ProjectName }})
 
 # 采用C++14标准
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(ZELPATH $ENV{ZELPATH}/${CMAKE_BUILD_TYPE})
-
 # 设置安装路径
+set(ZELPATH $ENV{ZELPATH}/${CMAKE_BUILD_TYPE})
 set(CMAKE_INSTALL_PREFIX ${ZELPATH})
 
 if(WIN32)
@@ -244,26 +242,28 @@ list(APPEND CMAKE_PREFIX_PATH ${ZELPATH})
 include_directories(${ZELPATH}/include)
 link_directories(${ZELPATH}/lib)
 
-enable_testing()
-
 # 添加子工程
 add_subdirectory(src)
 add_subdirectory(test)
 `
 
-var srcCmakeLists = `set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+var libSrcCMakeLists = `# 设置库名
+set(LIB_NAME {{ .ProjectName }})
+
+# 设置二进制文件输出路径
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-
-# 查找源文件
-file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
 
 # 查找头文件
 file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.h ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
 
-# 编译静态库
-add_library(${LIB_NAME} "")
+# 查找源文件
+file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
 
+{{ .LibInfo }}
+
+# 链接静态库源码
 target_sources(${LIB_NAME}
     PRIVATE
         ${SOURCES}
@@ -271,24 +271,23 @@ target_sources(${LIB_NAME}
         ${HEADERS}
 )
 
-# 添加头文件
+# 为 target 添加头文件
 target_include_directories(${LIB_NAME}
     PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
-# 为 target 添加库文件目录
-# 如果有需要，可以填入库文件目录路径
+# # 为 target 添加库文件目录 (如果有需要，可以填入库文件目录路径)
 # target_link_directories(${LIB_NAME}
 #     PUBLIC
 #         path/to/libraries
 # )
 
-# 为 target 添加需要链接的共享库
-# 如果有需要，可以填入共享库名字
+
+# # 为 target 添加需要链接的共享库 （如果有需要，可以填入共享库名字)
 # TARGET_LINK_LIBRARIES(${LIB_NAME}
 #     PUBLIC
-#         library_name
+#         zel
 # )
 
 # 安装目标文件
@@ -306,7 +305,102 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ DESTINATION include/${LIB_NAME}
 )
 `
 
-var testCmakeLists = `function(add_test_executable name)
+var appSrcCMakeLists = `# 设置应用程序名
+set(APP_NAME {{ .ProjectName }})
+
+# 设置二进制文件输出路径
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
+# 查找头文件
+file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.h ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
+
+# 查找源文件
+file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
+
+# 编译应用程序
+add_executable(${APP_NAME} "")
+
+# 链接源码
+target_sources(${APP_NAME}
+    PRIVATE
+        ${SOURCES}
+    PUBLIC
+        ${HEADERS}
+)
+
+# 为 target 添加头文件
+target_include_directories(${APP_NAME}
+    PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}
+)
+
+# # 为 target 添加库文件目录 (如果有需要，可以填入库文件目录路径)
+# target_link_directories(${APP_NAME}
+#     PUBLIC
+#         path/to/libraries
+# )
+
+# # 为 target 添加需要链接的共享库 （如果有需要，可以填入共享库名字)
+# TARGET_LINK_LIBRARIES(${APP_NAME}
+#     PUBLIC
+#         zel
+# )
+`
+
+var qtSrcCMakeLists = `# 设置应用程序名
+set(APP_NAME {{ .ProjectName }})
+
+# 设置二进制文件输出路径
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
+# 设置Qt5
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+# 寻找Qt5库
+find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
+
+# 设置UI文件搜索路径
+list(APPEND CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR}/res/ui)
+
+# 查找源文件
+file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
+
+# 添加资源文件
+file(GLOB RESOURCES ${CMAKE_SOURCE_DIR}/res/rc/*)
+
+# 添加可执行文件
+add_executable(${APP_NAME}  ${SOURCES} ${RESOURCES}) #debug
+# add_executable(${APP_NAME} WIN32 ${SOURCES} ${RESOURCES}  ${MY_VERSIONINFO_RC}) # release
+
+include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
+
+# # 为target添加头文件
+# target_include_directories(${APP_NAME}
+#     PUBLIC
+# )
+
+# # 为 target 添加库文件目录 (如果有需要，可以填入库文件目录路径)
+# target_link_directories(${APP_NAME}
+#     PUBLIC
+#         path/to/libraries
+# )
+
+# 为target添加需要链接的共享库
+TARGET_LINK_LIBRARIES(${APP_NAME}
+    PRIVATE
+        Qt5::Core
+        Qt5::Gui
+        Qt5::Widgets
+)`
+
+var testCMakeLists = `function(add_test_executable name)
     file(GLOB_RECURSE files ${name}/*.cpp)
     add_executable(${name}-test ${files})
     target_include_directories(${name}-test 
@@ -320,8 +414,32 @@ var testCmakeLists = `function(add_test_executable name)
     )
 endfunction(add_test_executable name)
 
+# 查找 GTest 库
 find_package(GTest REQUIRED)
 
+# 启用测试
+enable_testing()
+
+# 添加测试
+`
+
+var appTestCMakeLists = `function(add_test_executable name)
+    file(GLOB_RECURSE files ${name}/*.cpp)
+    add_executable(${name}-test ${files})
+    target_include_directories(${name}-test 
+        PUBLIC
+    )
+    target_link_libraries(${name}-test
+        PUBLIC
+            GTest::gtest_main
+            ${ARGN}
+    )
+endfunction(add_test_executable name)
+
+# 查找 GTest 库
+find_package(GTest REQUIRED)
+
+# 启用测试
 enable_testing()
 
 # 添加测试
@@ -332,6 +450,22 @@ var utilsHeader = `#pragma once
 
 var utilsCPP = `#include "utils.h"
 `
+
+var mainCPP = `#include <iostream>
+
+int main(int argc, char *argv[]) {
+
+    std::cout << "Welcome to zel!" << std::endl;
+
+    return 0;
+}
+`
+
+var staticLibInfo = `# 编译静态库
+add_library(${LIB_NAME} "")`
+
+var dynamicLibInfo = `# 编译动态库
+add_library(${LIB_NAME} SHARED "")`
 
 var launch = `{
     // 使用 IntelliSense 了解相关属性。 
@@ -360,4 +494,156 @@ var testLaunch = `{
             "cwd": "${workspaceFolder}"
         },
         //{{ .configuration }}
+`
+
+var imagesRC = `<!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+     <!-- <file>../images/logo.ico</file> -->
+ </qresource>
+ </RCC>
+`
+
+var logoRc = `// IDI_ICON1 ICON "../images/logo.ico"`
+
+var mainWindowUI = `<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="push_btn">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>160</y>
+      <width>211</width>
+      <height>171</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>PushButton</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>`
+
+var templateUI = `<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Template</class>
+ <widget class="QWidget" name="Template">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Template</string>
+  </property>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+
+`
+
+var qtMainCPP = `#include "app/main_window.h"
+
+#include <QApplication>
+#pragma comment(lib, "user32.lib")
+
+int main(int argc, char *argv[]) {
+
+    // 设置高DPI
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
+    QApplication a(argc, argv);
+    MainWindow   w;
+    w.show();
+    return a.exec();
+}
+`
+
+var appHeader = `#pragma once
+#include "ui_main_window.h"
+#include <QMainWindow>
+
+class MainWindow : public QMainWindow {
+    Q_OBJECT
+
+  public:
+    MainWindow(QMainWindow *parent = nullptr);
+    ~MainWindow();
+
+  private:
+    // 初始化窗口
+    void initWindow();
+
+    // 初始化UI
+    void initUI();
+
+    /// @brief 初始化信号槽
+    void initSignalSlot();
+
+  private:
+    Ui_MainWindow *ui_;
+};
+`
+var appCPP = `#include "main_window.h"
+
+MainWindow::MainWindow(QMainWindow *parent)
+    : QMainWindow(parent)
+    , ui_(new Ui_MainWindow) {
+    ui_->setupUi(this);
+
+    initWindow();
+
+    initUI();
+
+    initSignalSlot();
+}
+
+MainWindow::~MainWindow() { delete ui_; }
+
+void MainWindow::initWindow() {
+
+    // 设置窗口标题
+    setWindowTitle("Template");
+}
+
+void MainWindow::initUI() {
+    // 插入图片
+    QPixmap pixmap(":/image/data.png");
+    ui_->push_btn->setIcon(pixmap);
+    ui_->push_btn->setIconSize(pixmap.size());
+    ui_->push_btn->setFixedSize(pixmap.size());
+}
+
+void MainWindow::initSignalSlot() {}
 `

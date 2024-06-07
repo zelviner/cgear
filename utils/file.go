@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"archive/zip"
 	"bufio"
 	"errors"
 	"fmt"
@@ -158,4 +159,71 @@ func ReplaceFileContent(filename string, old string, new string) error {
 	WriteToFile(filename, content)
 
 	return err
+}
+
+// ZipFile compresses the specified source directory and saves the result as a zip file at the destination path.
+func ZipFile(src, dst string) error {
+	// Create the zip file.
+	zipFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create zip file: %w", err)
+	}
+	defer zipFile.Close()
+
+	// Create a new zip archive.
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	// Walk through the source directory and add files to the zip archive.
+	err = filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Get the relative path of the file or directory to be used as the header name.
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+
+		// Create a zip file header based on the file info.
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+		header.Name = relPath
+
+		if info.IsDir() {
+			header.Name += "/"
+		} else {
+			header.Method = zip.Deflate
+		}
+
+		// Create a writer for the file header and copy the file content.
+		writer, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			_, err = io.Copy(writer, file)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to walk through source directory: %w", err)
+	}
+
+	return nil
 }

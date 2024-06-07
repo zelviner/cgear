@@ -1,12 +1,12 @@
 package run
 
 import (
-	"os"
 	"path/filepath"
 
 	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
 	"github.com/ZEL-30/zel/config"
+	"github.com/ZEL-30/zel/utils"
 )
 
 var CmdRun = &commands.Command{
@@ -32,10 +32,8 @@ func init() {
 
 // RunApp定位要监视的文件，并启动 C++ 应用程序
 func RunApp(cmd *commands.Command, args []string) int {
-	// cmd.Flag.Parse(args[1:])
 
-	// 默认应用程序路径是当前工作目录
-	projectPath, _ := os.Getwd()
+	projectPath := utils.GetZelWorkPath()
 	appName = filepath.Base(projectPath)
 
 	buildPath := filepath.Join(projectPath, "build")

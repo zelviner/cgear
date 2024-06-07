@@ -9,6 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/utils"
 )
 
 const confVer = 0
@@ -61,10 +62,7 @@ var Conf = Config{
 // LoadConfig 加载 Zel tool配置。
 // 它在当前路径中查找Zelfile或zel.json，如果找不到，则返回默认配置
 func LaodConfig() {
-	currentPath, err := os.Getwd()
-	if err != nil {
-		logger.Log.Error(err.Error())
-	}
+	currentPath := utils.GetZelWorkPath()
 
 	dir, err := os.Open(currentPath)
 	if err != nil {

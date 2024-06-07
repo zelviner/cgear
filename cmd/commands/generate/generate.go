@@ -65,7 +65,7 @@ func init() {
 }
 
 func GenerateCode(cmd *commands.Command, args []string) int {
-	currPath, _ := os.Getwd()
+	currPath := utils.GetZelWorkPath()
 	if len(args) < 1 {
 		logger.Log.Fatal("Command is missing")
 	}

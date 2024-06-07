@@ -2,11 +2,19 @@ package pack
 
 import (
 	"flag"
+	"fmt"
+	"io/fs"
 	"os"
+	"os/exec"
+	"path/filepath"
 	path "path/filepath"
+	"strings"
 
+	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/utils"
 )
 
 var CmdPack = &commands.Command{
@@ -31,7 +39,7 @@ var (
 	// excludeR  utils.ListOpts
 	fsym      bool
 	ssym      bool
-	build     bool
+	isBuild   bool
 	buildArgs string
 	// buildEnvs utils.ListOpts
 	verbose bool
@@ -41,7 +49,7 @@ var (
 func init() {
 	fs := flag.NewFlagSet("pack", flag.ContinueOnError)
 	fs.StringVar(&projectPath, "p", "", "Set the project path. Defaults to the current path.")
-	fs.BoolVar(&build, "b", true, "Tell the command to do a build for the current platform. Defaults to true.")
+	fs.BoolVar(&isBuild, "b", true, "Tell the command to do a build for the current platform. Defaults to true.")
 	fs.StringVar(&projectName, "a", "", "Set the application name. Defaults to the dir name.")
 	fs.StringVar(&buildArgs, "ba", "", "Specify additional args for Go build.")
 	// fs.Var(&buildEnvs, "be", "Specify additional env variables for Go build. e.g. GOARCH=arm.")
@@ -58,8 +66,7 @@ func init() {
 }
 
 func packProject(cmd *commands.Command, args []string) int {
-	// output := cmd.Out()
-	currPath, _ := os.Getwd()
+	currPath := utils.GetZelWorkPath()
 	var thePath string
 
 	nArgs := []string{}
@@ -89,5 +96,104 @@ func packProject(cmd *commands.Command, args []string) int {
 
 	logger.Log.Infof("Packaging Project on '%s'...", thePath)
 
+	var (
+		versionNumber string
+		execName      string
+	)
+	logger.Log.Infof("Please set the version number: ")
+	fmt.Scanf("%s", &versionNumber)
+
+	filepath.Walk(filepath.Join(currPath, "bin"), func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if index := strings.Index(info.Name(), ".exe"); index != -1 {
+			execName = info.Name()[:index]
+		}
+
+		return nil
+	})
+
+	src := filepath.Join(currPath, "bin", execName+".exe")
+	tmpdir := filepath.Join(currPath, "bin", execName+"-"+versionNumber)
+	zipdir := tmpdir + ".zip"
+	des := filepath.Join(tmpdir, execName+"-"+versionNumber+".exe")
+
+	utils.MakeDir(tmpdir)
+	defer func() {
+		// Remove the tmpdir once bee pack is done
+		err := os.RemoveAll(tmpdir)
+		if err != nil {
+			logger.Log.Error("Failed to remove the generated temp dir")
+		}
+	}()
+
+	// 编译
+	if isBuild {
+		build()
+	}
+
+	_, err = utils.CopyFile(src, des)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
+	switch format {
+	case "tar.gz":
+	default:
+		format = "zip"
+	}
+
+	// QT 打包
+	err = pack(des)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
+	// 压缩
+	err = utils.ZipFile(tmpdir, zipdir)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
+	logger.Log.Success("Application packed!")
 	return 0
+}
+
+func pack(execPath string) error {
+	cmd := exec.Command("windeployqt", execPath)
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func build() {
+	buildPath := filepath.Join(projectPath, "build")
+
+	configArg := cmake.ConfigArg{
+		NoWarnUnusedCli:       true,
+		BuildType:             "Release",
+		ExportCompileCommands: true,
+		Kit:                   config.Conf.Kit,
+		ProjectPath:           projectPath,
+		BuildPath:             buildPath,
+		Generator:             "Ninja",
+		CXXFlags:              "-D_MD",
+	}
+
+	buildArg := cmake.BuildArg{
+		BuildPath: buildPath,
+		BuildType: "Release",
+	}
+
+	err := cmake.Build(&configArg, &buildArg, true, false)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
+	logger.Log.Success("Build successful!")
 }

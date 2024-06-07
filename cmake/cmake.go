@@ -8,6 +8,7 @@ import (
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/env"
 	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/utils"
 )
 
 // cmake 配置命令参数
@@ -36,7 +37,7 @@ var (
 )
 
 func init() {
-	appPath, _ = os.Getwd()
+	appPath = utils.GetZelWorkPath()
 	appName = filepath.Base(appPath)
 }
 

@@ -1,13 +1,13 @@
 package build
 
 import (
-	"os"
 	"path/filepath"
 
 	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/utils"
 )
 
 var CmdBuild = &commands.Command{
@@ -35,7 +35,7 @@ func init() {
 
 func BuildApp(cmd *commands.Command, args []string) int {
 
-	appPath, _ = os.Getwd()
+	appPath := utils.GetZelWorkPath()
 	buildPath = filepath.Join(appPath, "build")
 
 	configArg := cmake.ConfigArg{
