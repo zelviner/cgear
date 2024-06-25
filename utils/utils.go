@@ -38,12 +38,6 @@ func GetZelWorkPath() string {
 	return curPath
 }
 
-// IsExist返回文件或目录是否存在
-func IsExist(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil || os.IsExist(err)
-}
-
 // 检查当前路径是否为 Zel tool 生成的 C++ 项目
 func IsZelProject(thePath string) bool {
 	cmakeListsFiles := []string{

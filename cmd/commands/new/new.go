@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/cmd/commands/install"
 	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
@@ -66,6 +67,8 @@ func Create(cmd *commands.Command, args []string) int {
 	if err != nil {
 		logger.Log.Fatal("Parse args err" + err.Error())
 	}
+
+	install.InstallGTest()
 
 	output = cmd.Out()
 	projectName = args[0]

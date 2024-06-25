@@ -22,6 +22,12 @@ import (
 // 	return existed
 // }
 
+// 检查文件是否存在
+func IsExist(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil || os.IsExist(err)
+}
+
 // 创建文件夹（如果文件夹不存在则创建）
 func MakeDir(dir string) error {
 	if !IsExist(dir) {
@@ -101,12 +107,31 @@ func CopyDir(srcPath, desPath string) error {
 
 // 创建文件并向其中写入内容
 func WriteToFile(filename string, content string) {
-	f, err := os.Create(filename)
+	var (
+		file *os.File
+		err  error
+	)
+	if !IsExist(filename) {
+		file, err = os.Create(filename)
+	} else {
+		file, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	}
 	MustCheck(err)
-	defer CloseFile(f)
+	defer CloseFile(file)
 
-	_, err = f.WriteString(content)
+	_, err = file.WriteString(content)
 	MustCheck(err)
+}
+
+func ReadFile(filename string) string {
+	file, err := os.Open(filename)
+	MustCheck(err)
+	defer CloseFile(file)
+
+	bytes, err := io.ReadAll(file)
+	MustCheck(err)
+
+	return string(bytes)
 }
 
 // 尝试关闭传递的文件, 如果出错 panic

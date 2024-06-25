@@ -45,13 +45,13 @@ func install(cmd *commands.Command, args []string) int {
 	case 1:
 		cmd.Flag.Parse(args[1:])
 		vendorInfo = args[0]
-		getPKG()
+		getPKG(true)
 	default:
 		logger.Log.Fatal("Too many parameters")
 	}
 
 	logger.Log.Infof("Installing '%s' ...", vendorInfo)
-	err := installPKG()
+	err := installPKG(true)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
@@ -60,7 +60,7 @@ func install(cmd *commands.Command, args []string) int {
 	return 0
 }
 
-func getPKG() {
+func getPKG(showInfo bool) {
 
 	re, err := regexp.Compile("(.+):(.+)")
 	if err != nil {
@@ -88,19 +88,21 @@ func getPKG() {
 		}
 	}
 
-	err = DownloadPKG(ssh, vendorPath)
+	err = DownloadPKG(ssh, vendorPath, showInfo)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
 }
 
-func DownloadPKG(ssh string, vendorPath string) error {
+func DownloadPKG(ssh string, vendorPath string, showInfo bool) error {
 
 	logger.Log.Info("Downloading third-party libraries: " + vendorPath)
 
 	command := exec.Command("git", "clone", ssh, vendorPath, "--depth=1")
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
+	if showInfo {
+		command.Stdout = os.Stdout
+		command.Stderr = os.Stderr
+	}
 	err := command.Run()
 	if err != nil {
 		return err
@@ -109,7 +111,7 @@ func DownloadPKG(ssh string, vendorPath string) error {
 	return nil
 }
 
-func installPKG() error {
+func installPKG(showInfo bool) error {
 	buildPath := filepath.Join(vendorPath, "build")
 	buildType := "Debug"
 	installPath := filepath.Join(zelPath, strings.ToLower(buildType))
@@ -132,7 +134,7 @@ func installPKG() error {
 	}
 
 	// Debug
-	err := cmake.Build(&configArg, &buildArg, true, true)
+	err := cmake.Build(&configArg, &buildArg, true, showInfo)
 	if err != nil {
 		return err
 	}
@@ -143,10 +145,38 @@ func installPKG() error {
 	configArg.BuildType = buildType
 	configArg.InstallPrefix = installPath
 	buildArg.BuildType = buildType
-	err = cmake.Build(&configArg, &buildArg, true, true)
+	err = cmake.Build(&configArg, &buildArg, true, showInfo)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func InstallGTest() {
+	gtestPath := filepath.Join(zelPath, "debug", "include", "gtest")
+	if utils.IsExist(gtestPath) {
+		return
+	}
+
+	vendorInfo = "google:googletest"
+	getPKG(false)
+
+	cmakePath := vendorPath + "/CMakeLists.txt"
+	str := utils.ReadFile(cmakePath)
+	os.Remove(cmakePath)
+	content := `# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)` + "\n\n" + str
+	utils.WriteToFile(cmakePath, content)
+
+	err := installPKG(false)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
+	// 删除 zel.json 文件
+	zelJsonPath := utils.GetZelWorkPath() + "/zel.json"
+	if utils.IsExist(zelJsonPath) {
+		os.Remove(zelJsonPath)
+	}
 }

@@ -77,7 +77,6 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool
 	// 检查是否需要重新构建
 	if rebuild {
 		if _, err := os.Stat(configArg.BuildPath); err == nil {
-			logger.Log.Warn("删除build文件夹")
 			os.RemoveAll(configArg.BuildPath)
 		}
 	}
