@@ -1,13 +1,11 @@
 package pack
 
 import (
-	"flag"
 	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
-	path "path/filepath"
 	"strings"
 
 	"github.com/ZEL-30/zel/cmake"
@@ -32,42 +30,30 @@ var CmdPack = &commands.Command{
 
 var (
 	projectPath string
-	projectName string
-	excludeP    string
-	excludeS    string
-	outputP     string
-	// excludeR  utils.ListOpts
-	fsym      bool
-	ssym      bool
-	isBuild   bool
-	buildArgs string
-	// buildEnvs utils.ListOpts
-	verbose bool
-	format  string
 )
 
 func init() {
-	fs := flag.NewFlagSet("pack", flag.ContinueOnError)
-	fs.StringVar(&projectPath, "p", "", "Set the project path. Defaults to the current path.")
-	fs.BoolVar(&isBuild, "b", true, "Tell the command to do a build for the current platform. Defaults to true.")
-	fs.StringVar(&projectName, "a", "", "Set the application name. Defaults to the dir name.")
-	fs.StringVar(&buildArgs, "ba", "", "Specify additional args for Go build.")
-	// fs.Var(&buildEnvs, "be", "Specify additional env variables for Go build. e.g. GOARCH=arm.")
-	fs.StringVar(&outputP, "o", "", "Set the compressed file output path. Defaults to the current path.")
-	fs.StringVar(&format, "f", "tar.gz", "Set file format. Either tar.gz or zip. Defaults to tar.gz.")
-	fs.StringVar(&excludeP, "exp", ".", "Set prefixes of paths to be excluded. Uses a column (:) as separator.")
-	fs.StringVar(&excludeS, "exs", ".go:.DS_Store:.tmp", "Set suffixes of paths to be excluded. Uses a column (:) as separator.")
-	// fs.Var(&excludeR, "exr", "Set a regular expression of files to be excluded.")
-	fs.BoolVar(&fsym, "fs", false, "Tell the command to follow symlinks. Defaults to false.")
-	fs.BoolVar(&ssym, "ss", false, "Tell the command to skip symlinks. Defaults to false.")
-	fs.BoolVar(&verbose, "v", false, "Be more verbose during the operation. Defaults to false.")
-	CmdPack.Flag = *fs
+	// fs := flag.NewFlagSet("pack", flag.ContinueOnError)
+	// fs.StringVar(&projectPath, "p", "", "Set the project path. Defaults to the current path.")
+	// fs.BoolVar(&isBuild, "b", true, "Tell the command to do a build for the current platform. Defaults to true.")
+	// fs.StringVar(&projectName, "a", "", "Set the application name. Defaults to the dir name.")
+	// fs.StringVar(&buildArgs, "ba", "", "Specify additional args for Go build.")
+	// // fs.Var(&buildEnvs, "be", "Specify additional env variables for Go build. e.g. GOARCH=arm.")
+	// fs.StringVar(&outputP, "o", "", "Set the compressed file output path. Defaults to the current path.")
+	// fs.StringVar(&format, "f", "tar.gz", "Set file format. Either tar.gz or zip. Defaults to tar.gz.")
+	// fs.StringVar(&excludeP, "exp", ".", "Set prefixes of paths to be excluded. Uses a column (:) as separator.")
+	// fs.StringVar(&excludeS, "exs", ".go:.DS_Store:.tmp", "Set suffixes of paths to be excluded. Uses a column (:) as separator.")
+	// // fs.Var(&excludeR, "exr", "Set a regular expression of files to be excluded.")
+	// fs.BoolVar(&fsym, "fs", false, "Tell the command to follow symlinks. Defaults to false.")
+	// fs.BoolVar(&ssym, "ss", false, "Tell the command to skip symlinks. Defaults to false.")
+	// fs.BoolVar(&verbose, "v", false, "Be more verbose during the operation. Defaults to false.")
+	// CmdPack.Flag = *fs
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdPack)
 }
 
 func packProject(cmd *commands.Command, args []string) int {
-	currPath := utils.GetZelWorkPath()
-	var thePath string
+	projectPath = utils.GetZelWorkPath()
+	projectName := filepath.Base(projectPath)
 
 	nArgs := []string{}
 	has := false
@@ -81,78 +67,60 @@ func packProject(cmd *commands.Command, args []string) int {
 	}
 	cmd.Flag.Parse(nArgs)
 
-	if !path.IsAbs(projectPath) {
-		projectPath = path.Join(currPath, projectPath)
-	}
-
-	thePath, err := path.Abs(projectPath)
-	if err != nil {
-		logger.Log.Fatalf("Wrong project path: %s", projectPath)
-	}
-
-	if stat, err := os.Stat(thePath); os.IsNotExist(err) || !stat.IsDir() {
-		logger.Log.Fatalf("Project path does not exist: %s", thePath)
-	}
-
-	logger.Log.Infof("Packaging Project on '%s'...", thePath)
+	logger.Log.Infof("Packaging Project on '%s'...", projectPath)
 
 	var (
 		versionNumber string
-		execName      string
 	)
 	logger.Log.Infof("Please set the version number: ")
 	fmt.Scanf("%s", &versionNumber)
 
-	filepath.Walk(filepath.Join(currPath, "bin"), func(path string, info fs.FileInfo, err error) error {
+	// 编译
+	build()
+
+	desPath := filepath.Join(projectPath, "bin", projectName+"-"+versionNumber)
+	des := filepath.Join(desPath, projectName+"-"+versionNumber+".exe")
+	zipdir := desPath + ".zip"
+
+	utils.MakeDir(desPath)
+	defer func() {
+		// Remove the desPath once bee pack is done
+		err := os.RemoveAll(desPath)
+		if err != nil {
+			logger.Log.Error("Failed to remove the generated des dir")
+		}
+	}()
+
+	filepath.Walk(filepath.Join(projectPath, "bin"), func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
 		if index := strings.Index(info.Name(), ".exe"); index != -1 {
-			execName = info.Name()[:index]
+			_, err := utils.CopyFile(path, des)
+			if err != nil {
+				return err
+			}
+		}
+
+		if index := strings.Index(info.Name(), ".dll"); index != -1 {
+			_, err := utils.CopyFile(path, filepath.Join(desPath, info.Name()))
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	})
 
-	src := filepath.Join(currPath, "bin", execName+".exe")
-	tmpdir := filepath.Join(currPath, "bin", execName+"-"+versionNumber)
-	zipdir := tmpdir + ".zip"
-	des := filepath.Join(tmpdir, execName+"-"+versionNumber+".exe")
-
-	utils.MakeDir(tmpdir)
-	defer func() {
-		// Remove the tmpdir once bee pack is done
-		err := os.RemoveAll(tmpdir)
-		if err != nil {
-			logger.Log.Error("Failed to remove the generated temp dir")
-		}
-	}()
-
-	// 编译
-	if isBuild {
-		build()
-	}
-
-	_, err = utils.CopyFile(src, des)
-	if err != nil {
-		logger.Log.Fatal(err.Error())
-	}
-
-	switch format {
-	case "tar.gz":
-	default:
-		format = "zip"
-	}
-
 	// QT 打包
-	err = pack(des)
+	err := pack(des)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
 
 	// 压缩
-	err = utils.ZipFile(tmpdir, zipdir)
+	err = utils.ZipFile(desPath, zipdir)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
