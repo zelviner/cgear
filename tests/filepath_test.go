@@ -38,3 +38,15 @@ func TestFilePath(t *testing.T) {
 		fmt.Println("Error:", err)
 	}
 }
+
+func TestPathSplit(t *testing.T) {
+
+	str := "C:/a/b/c/d/e; /sdf/sdf/aaa; /cc/gg/ee"
+
+	strList := filepath.SplitList(str)
+
+	for _, str := range strList {
+		fmt.Println(str)
+	}
+
+}

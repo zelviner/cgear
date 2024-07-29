@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
@@ -91,19 +90,19 @@ func packProject(cmd *commands.Command, args []string) int {
 		}
 	}()
 
-	filepath.Walk(filepath.Join(projectPath, "bin"), func(path string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(filepath.Join(projectPath, "bin"), func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if index := strings.Index(info.Name(), ".exe"); index != -1 {
+		if filepath.Ext(path) == ".exe" {
 			_, err := utils.CopyFile(path, des)
 			if err != nil {
 				return err
 			}
 		}
 
-		if index := strings.Index(info.Name(), ".dll"); index != -1 {
+		if filepath.Ext(path) == ".dll" {
 			_, err := utils.CopyFile(path, filepath.Join(desPath, info.Name()))
 			if err != nil {
 				return err
@@ -113,8 +112,12 @@ func packProject(cmd *commands.Command, args []string) int {
 		return nil
 	})
 
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
 	// QT 打包
-	err := pack(des)
+	err = pack(des)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
