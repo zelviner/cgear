@@ -16,8 +16,6 @@ type FileInfo struct {
 	FileContent string
 }
 
-var FileTemplate = "```C++\n{{.FileContent}}\n```"
-
 func SrcToDocx(filename string, currPath string) {
 
 	paragraph := GetParagraph(currPath)

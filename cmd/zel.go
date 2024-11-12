@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/ZEL-30/zel/cmd/commands"
 	_ "github.com/ZEL-30/zel/cmd/commands/build"
+	_ "github.com/ZEL-30/zel/cmd/commands/count"
 	_ "github.com/ZEL-30/zel/cmd/commands/env"
 	_ "github.com/ZEL-30/zel/cmd/commands/generate"
 	_ "github.com/ZEL-30/zel/cmd/commands/install"

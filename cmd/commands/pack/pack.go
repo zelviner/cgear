@@ -95,17 +95,17 @@ func packProject(cmd *commands.Command, args []string) int {
 			return err
 		}
 
-		if filepath.Ext(path) == ".exe" {
-			_, err := utils.CopyFile(path, des)
-			if err != nil {
-				return err
-			}
-		}
-
-		if filepath.Ext(path) == ".dll" {
-			_, err := utils.CopyFile(path, filepath.Join(desPath, info.Name()))
-			if err != nil {
-				return err
+		if filepath.Ext(path) == ".exe" || filepath.Ext(path) == ".dll" {
+			if info.Name() == projectName+".exe" {
+				_, err := utils.CopyFile(path, des)
+				if err != nil {
+					return err
+				}
+			} else {
+				_, err := utils.CopyFile(path, filepath.Join(desPath, info.Name()))
+				if err != nil {
+					return err
+				}
 			}
 		}
 
