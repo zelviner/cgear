@@ -23,7 +23,7 @@ type Config struct {
 	Version            int
 	WatchExts          []string `json:"watch_exts" yaml:"watch_exts"`
 	WatchExtsStatic    []string `json:"watch_exts_static" yaml:"watch_exts_static"`
-	ZelPath            string   `json:"zel_path" yaml:"zel_path"`
+	ZelHome            string   `json:"zel_home" yaml:"zel_home"`
 	Kit                *Kit     `json:"kit" yaml:"kit"`
 	BuildType          string   `json:"build_type" yaml:"build_type"`
 	Database           database
@@ -102,12 +102,12 @@ func LaodConfig() {
 		logger.Log.Hint("Check the latest version of zel's configuration file.")
 	}
 
-	// 设置ZelPath环境变量
-	if zelPath := os.Getenv("ZELPATH"); zelPath == "" {
+	// 设置 ZEL_HOME 环境变量
+	if zelHome := os.Getenv("ZEL_HOME"); zelHome == "" {
 		userProfile := os.Getenv("USERPROFILE")
-		Conf.ZelPath = filepath.Join(userProfile, "zel")
+		Conf.ZelHome = filepath.Join(userProfile, "zel")
 
-		cmd := exec.Command("SETX", "ZELPATH", Conf.ZelPath)
+		cmd := exec.Command("SETX", "ZEL_HOME", Conf.ZelHome)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 

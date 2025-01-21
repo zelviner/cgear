@@ -29,7 +29,7 @@ var (
 	vendorPath string
 	vendorInfo string
 
-	zelPath = os.Getenv("ZELPATH")
+	zelHome = os.Getenv("ZEL_HOME")
 )
 
 func init() {
@@ -75,7 +75,7 @@ func getPKG(showInfo bool) {
 	repositoryName := re.FindStringSubmatch(vendorInfo)[2]
 
 	ssh := "git@github.com:" + Author + "/" + repositoryName
-	vendorPath = filepath.Join(zelPath, "pkg", repositoryName)
+	vendorPath = filepath.Join(zelHome, "pkg", repositoryName)
 
 	if utils.IsExist(vendorPath) {
 		logger.Log.Errorf(colors.Bold("%s '%s' already exists"), vendorInfo, vendorPath)
@@ -114,7 +114,7 @@ func DownloadPKG(ssh string, vendorPath string, showInfo bool) error {
 func installPKG(showInfo bool) error {
 	buildPath := filepath.Join(vendorPath, "build")
 	buildType := "Debug"
-	installPath := filepath.Join(zelPath, strings.ToLower(buildType))
+	installPath := filepath.Join(zelHome, strings.ToLower(buildType))
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
@@ -141,7 +141,7 @@ func installPKG(showInfo bool) error {
 
 	// Release
 	buildType = "Release"
-	installPath = filepath.Join(zelPath, strings.ToLower(buildType))
+	installPath = filepath.Join(zelHome, strings.ToLower(buildType))
 	configArg.BuildType = buildType
 	configArg.InstallPrefix = installPath
 	buildArg.BuildType = buildType
@@ -154,7 +154,7 @@ func installPKG(showInfo bool) error {
 }
 
 func InstallGTest() {
-	gtestPath := filepath.Join(zelPath, "debug", "include", "gtest")
+	gtestPath := filepath.Join(zelHome, "debug", "include", "gtest")
 	if utils.IsExist(gtestPath) {
 		return
 	}

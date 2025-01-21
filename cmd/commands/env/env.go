@@ -15,7 +15,7 @@ const envInfoTemplate string = `%s%s _____     _
  / //\  __/ |__
 /____/\___|___/  v{{ .ZelVersion }}%s
 %s%s
-├── ZelPath   : {{ .ZelPath }}
+├── ZelHome   : {{ .ZelHome }}
 ├── BuildKit  : {{ .BuildKit }}
 ├── BuildType : {{ .BuildType }}
 └── Date      : {{ Now "Monday, 2 Jan 2006" }}%s

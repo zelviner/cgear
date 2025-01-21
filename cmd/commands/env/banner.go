@@ -12,7 +12,7 @@ import (
 
 type EnvInfo struct {
 	ZelVersion string
-	ZelPath    string
+	ZelHome    string
 	BuildType  string
 	BuildKit   string
 }
@@ -50,10 +50,10 @@ func show(out io.Writer, content string) {
 		envInfo.BuildKit = config.Conf.Kit.Name
 	}
 
-	if cPath := os.Getenv("ZELPATH"); cPath != "" {
-		envInfo.ZelPath = cPath
+	if cPath := os.Getenv("ZEL_HOME"); cPath != "" {
+		envInfo.ZelHome = cPath
 	} else {
-		envInfo.ZelPath = config.Conf.ZelPath
+		envInfo.ZelHome = config.Conf.ZelHome
 	}
 
 	err = t.Execute(out, envInfo)
