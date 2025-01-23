@@ -40,16 +40,6 @@ func GetZelWorkPath() string {
 	return curPath
 }
 
-// GetZelHomePath 获取 Zel 工具的安装路径
-func GetZelHomePath() string {
-	exePath, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-
-	return filepath.Dir(filepath.Dir(exePath))
-}
-
 // 检查当前路径是否为 Zel tool 生成的 C++ 项目
 func IsZelProject(thePath string) bool {
 	cmakeListsFiles := []string{

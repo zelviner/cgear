@@ -192,6 +192,5 @@ func releaseInstall() {
 	logger.Log.Info("Please set the third-party library name:")
 	vendorInfo = utils.ReadLine()
 
-	fmt.Println("getZelHomePath: ", utils.GetZelHomePath())
 	fmt.Println("getZelWorkPath: ", utils.GetZelWorkPath())
 }
