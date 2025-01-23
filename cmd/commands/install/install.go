@@ -1,6 +1,7 @@
 package install
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,7 +30,7 @@ var (
 	vendorPath string
 	vendorInfo string
 
-	zelHome = os.Getenv("ZEL_HOME")
+	zelVendor = os.Getenv("ZEL_VENDOR")
 )
 
 func init() {
@@ -45,13 +46,18 @@ func install(cmd *commands.Command, args []string) int {
 	case 1:
 		cmd.Flag.Parse(args[1:])
 		vendorInfo = args[0]
-		getPKG(true)
+		if filepath.IsAbs(vendorInfo) {
+			releaseInstall()
+			return 0
+		} else {
+			getPKG(true)
+		}
 	default:
 		logger.Log.Fatal("Too many parameters")
 	}
 
 	logger.Log.Infof("Installing '%s' ...", vendorInfo)
-	err := installPKG(true)
+	err := compileInstall(true)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
@@ -75,7 +81,7 @@ func getPKG(showInfo bool) {
 	repositoryName := re.FindStringSubmatch(vendorInfo)[2]
 
 	ssh := "git@github.com:" + Author + "/" + repositoryName
-	vendorPath = filepath.Join(zelHome, "pkg", repositoryName)
+	vendorPath = filepath.Join(zelVendor, "pkg", repositoryName)
 
 	if utils.IsExist(vendorPath) {
 		logger.Log.Errorf(colors.Bold("%s '%s' already exists"), vendorInfo, vendorPath)
@@ -88,13 +94,13 @@ func getPKG(showInfo bool) {
 		}
 	}
 
-	err = DownloadPKG(ssh, vendorPath, showInfo)
+	err = downloadPKG(ssh, vendorPath, showInfo)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
 }
 
-func DownloadPKG(ssh string, vendorPath string, showInfo bool) error {
+func downloadPKG(ssh string, vendorPath string, showInfo bool) error {
 
 	logger.Log.Info("Downloading third-party libraries: " + vendorPath)
 
@@ -111,10 +117,10 @@ func DownloadPKG(ssh string, vendorPath string, showInfo bool) error {
 	return nil
 }
 
-func installPKG(showInfo bool) error {
+func compileInstall(showInfo bool) error {
 	buildPath := filepath.Join(vendorPath, "build")
 	buildType := "Debug"
-	installPath := filepath.Join(zelHome, strings.ToLower(buildType))
+	installPath := filepath.Join(zelVendor, strings.ToLower(buildType))
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
@@ -141,7 +147,7 @@ func installPKG(showInfo bool) error {
 
 	// Release
 	buildType = "Release"
-	installPath = filepath.Join(zelHome, strings.ToLower(buildType))
+	installPath = filepath.Join(zelVendor, strings.ToLower(buildType))
 	configArg.BuildType = buildType
 	configArg.InstallPrefix = installPath
 	buildArg.BuildType = buildType
@@ -154,7 +160,7 @@ func installPKG(showInfo bool) error {
 }
 
 func InstallGTest() {
-	gtestPath := filepath.Join(zelHome, "debug", "include", "gtest")
+	gtestPath := filepath.Join(zelVendor, "debug", "include", "gtest")
 	if utils.IsExist(gtestPath) {
 		return
 	}
@@ -169,7 +175,7 @@ func InstallGTest() {
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)` + "\n\n" + str
 	utils.WriteToFile(cmakePath, content)
 
-	err := installPKG(false)
+	err := compileInstall(false)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
@@ -179,4 +185,13 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)` + "\n\n" + str
 	if utils.IsExist(zelJsonPath) {
 		os.Remove(zelJsonPath)
 	}
+}
+
+func releaseInstall() {
+	logger.Log.Info("Installing third-party libraries: " + vendorInfo)
+	logger.Log.Info("Please set the third-party library name:")
+	vendorInfo = utils.ReadLine()
+
+	fmt.Println("getZelHomePath: ", utils.GetZelHomePath())
+	fmt.Println("getZelWorkPath: ", utils.GetZelWorkPath())
 }

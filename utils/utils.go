@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -29,6 +30,7 @@ type Releases struct {
 	TagName     time.Time `json:"tag_name"`
 }
 
+// GetZelWorkPath 获取当前工作目录的路径
 func GetZelWorkPath() string {
 	curPath, err := os.Getwd()
 	if err != nil {
@@ -36,6 +38,16 @@ func GetZelWorkPath() string {
 	}
 
 	return curPath
+}
+
+// GetZelHomePath 获取 Zel 工具的安装路径
+func GetZelHomePath() string {
+	exePath, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+
+	return filepath.Dir(filepath.Dir(exePath))
 }
 
 // 检查当前路径是否为 Zel tool 生成的 C++ 项目
@@ -232,4 +244,11 @@ func CapitalizeFirstLetter(word string) string {
 	}
 
 	return capFirstLetter
+}
+
+// ReadLine 读取一行输入
+func ReadLine() string {
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	return strings.TrimSpace(input)
 }

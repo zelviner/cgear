@@ -222,8 +222,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 设置安装路径
-set(ZEL_HOME $ENV{ZEL_HOME}/${CMAKE_BUILD_TYPE})
-set(CMAKE_INSTALL_PREFIX ${ZEL_HOME})
+set(ZEL_VENDOR $ENV{ZEL_VENDOR}/${CMAKE_BUILD_TYPE})
+set(CMAKE_INSTALL_PREFIX ${ZEL_VENDOR})
 
 if(WIN32)
     set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -238,9 +238,9 @@ if(MSVC)
 endif()
 
 # 设置三方库的安装路径, 搜索路径, 链接路径
-list(APPEND CMAKE_PREFIX_PATH ${ZEL_HOME})
-include_directories(${ZEL_HOME}/include)
-link_directories(${ZEL_HOME}/lib)
+list(APPEND CMAKE_PREFIX_PATH ${ZEL_VENDOR})
+include_directories(${ZEL_VENDOR}/include)
+link_directories(${ZEL_VENDOR}/lib)
 
 # 添加子工程
 add_subdirectory(src)
