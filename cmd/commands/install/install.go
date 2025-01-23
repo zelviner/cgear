@@ -120,7 +120,7 @@ func downloadPKG(ssh string, vendorPath string, showInfo bool) error {
 func compileInstall(showInfo bool) error {
 	buildPath := filepath.Join(vendorPath, "build")
 	buildType := "Debug"
-	installPath := filepath.Join(zelHome, strings.ToLower(buildType))
+	installPath := filepath.Join(zelHome, "vendor", strings.ToLower(buildType))
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
@@ -147,7 +147,7 @@ func compileInstall(showInfo bool) error {
 
 	// Release
 	buildType = "Release"
-	installPath = filepath.Join(zelHome, strings.ToLower(buildType))
+	installPath = filepath.Join(zelHome, "vendor", strings.ToLower(buildType))
 	configArg.BuildType = buildType
 	configArg.InstallPrefix = installPath
 	buildArg.BuildType = buildType
@@ -160,7 +160,7 @@ func compileInstall(showInfo bool) error {
 }
 
 func InstallGTest() {
-	gtestPath := filepath.Join(zelHome, "debug", "include", "gtest")
+	gtestPath := filepath.Join(zelHome, "vendor", "debug", "include", "gtest")
 	if utils.IsExist(gtestPath) {
 		return
 	}
