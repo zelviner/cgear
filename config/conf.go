@@ -101,12 +101,12 @@ func LaodConfig() {
 		logger.Log.Hint("Check the latest version of zel's configuration file.")
 	}
 
-	// 设置 ZEL_VENDOR 环境变量
-	if zelVendor := os.Getenv("ZEL_VENDOR"); zelVendor == "" {
+	// 设置 ZEL_HOME 环境变量
+	if zelHome := os.Getenv("ZEL_HOME"); zelHome == "" {
 		// 获取程序所在的路径
 		programPath := utils.GetZelWorkPath()
 
-		cmd := exec.Command("SETX", "ZEL_VENDOR", programPath)
+		cmd := exec.Command("SETX", "ZEL_HOME", programPath)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
