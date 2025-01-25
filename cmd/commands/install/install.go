@@ -1,7 +1,6 @@
 package install
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,18 +16,24 @@ import (
 	"github.com/ZEL-30/zel/utils"
 )
 
+// CmdInstall represents the install command
 var CmdInstall = &commands.Command{
-	UsageLine: "install []",
+	UsageLine: "install [package]",
 	Short:     "Downloading and installing C++ third-party open source libraries from GitHub",
 	Long: `
+Install downloads and compiles C++ third-party libraries from GitHub.
+Usage:
+    zel install                     # Install in current directory
+    zel install author:repository   # Install specific repository
 `,
 	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
 	Run:    install,
 }
 
 var (
-	vendorPath string
-	vendorInfo string
+	vendorPath     string
+	vendorInfo     string
+	repositoryName string
 
 	zelHome = os.Getenv("ZEL_HOME")
 )
@@ -78,7 +83,7 @@ func getPKG(showInfo bool) {
 	}
 
 	Author := re.FindStringSubmatch(vendorInfo)[1]
-	repositoryName := re.FindStringSubmatch(vendorInfo)[2]
+	repositoryName = re.FindStringSubmatch(vendorInfo)[2]
 
 	ssh := "git@github.com:" + Author + "/" + repositoryName
 	vendorPath = filepath.Join(zelHome, "pkg", repositoryName)
@@ -100,6 +105,10 @@ func getPKG(showInfo bool) {
 	}
 }
 
+// DownloadPKG downloads a package from GitHub using git clone
+// ssh: GitHub SSH URL
+// vendorPath: local path to store the package
+// showInfo: whether to show download progress
 func downloadPKG(ssh string, vendorPath string, showInfo bool) error {
 
 	logger.Log.Info("Downloading third-party libraries: " + vendorPath)
@@ -120,7 +129,7 @@ func downloadPKG(ssh string, vendorPath string, showInfo bool) error {
 func compileInstall(showInfo bool) error {
 	buildPath := filepath.Join(vendorPath, "build")
 	buildType := "Debug"
-	installPath := filepath.Join(zelHome, "vendor", strings.ToLower(buildType))
+	installPath := filepath.Join(zelHome, "vendor", strings.ToLower(buildType), repositoryName)
 
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
@@ -147,7 +156,7 @@ func compileInstall(showInfo bool) error {
 
 	// Release
 	buildType = "Release"
-	installPath = filepath.Join(zelHome, "vendor", strings.ToLower(buildType))
+	installPath = filepath.Join(zelHome, "vendor", strings.ToLower(buildType), repositoryName)
 	configArg.BuildType = buildType
 	configArg.InstallPrefix = installPath
 	buildArg.BuildType = buildType
@@ -188,9 +197,32 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)` + "\n\n" + str
 }
 
 func releaseInstall() {
+
+	// 检测 vendorInfo 是否存在
+	if !utils.IsExist(vendorInfo) {
+		logger.Log.Fatal("Third-party library not found: " + vendorInfo)
+	}
+
+	// 检测 vendorInfo/include 和 vendorInfo/lib 是否存在
+	includePath := filepath.Join(vendorInfo, "include")
+	libPath := filepath.Join(vendorInfo, "lib")
+	if !utils.IsExist(includePath) || !utils.IsExist(libPath) {
+		logger.Log.Fatalf("%s is not a third-party library", vendorInfo)
+	}
+
 	logger.Log.Info("Installing third-party libraries: " + vendorInfo)
 	logger.Log.Info("Please set the third-party library name:")
-	vendorInfo = utils.ReadLine()
+	repositoryName = utils.ReadLine()
 
-	fmt.Println("getZelWorkPath: ", utils.GetZelWorkPath())
+	// 拷贝 vendorInfo 下的 include 和 lib 目录到 debugPath 下
+	debugPath := filepath.Join(zelHome, "vendor", "debug", repositoryName)
+	utils.CopyDir(includePath, filepath.Join(debugPath, "include"))
+	utils.CopyDir(libPath, filepath.Join(debugPath, "lib"))
+
+	// 拷贝 vendorInfo 下的 include 和 lib 目录到 releasePath 下
+	releasePath := filepath.Join(zelHome, "vendor", "release", repositoryName)
+	utils.CopyDir(includePath, filepath.Join(releasePath, "include"))
+	utils.CopyDir(libPath, filepath.Join(releasePath, "lib"))
+
+	logger.Log.Successf("Successfully installed '%s'", repositoryName)
 }

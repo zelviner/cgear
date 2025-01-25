@@ -180,11 +180,6 @@ xxx@xxxx
 [license-url]: https://github.com/shaojintian/Best_README_template/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/shaojintian
-
-
-
-
-
 `
 
 var license = `MIT License 
@@ -238,9 +233,12 @@ if(MSVC)
 endif()
 
 # 设置三方库的安装路径, 搜索路径, 链接路径
-list(APPEND CMAKE_PREFIX_PATH ${ZEL_VENDOR})
-include_directories(${ZEL_VENDOR}/include)
-link_directories(${ZEL_VENDOR}/lib)
+file(GLOB VENDOR_DIRS ${ZEL_VENDOR}/*)
+file(GLOB VENDOR_INCLUDE_DIRS ${ZEL_VENDOR}/*/include)
+file(GLOB VENDOR_LIB_DIRS ${ZEL_VENDOR}/*/lib)
+list(APPEND CMAKE_PREFIX_PATH ${VENDOR_DIRS})
+include_directories(${VENDOR_INCLUDE_DIRS})
+link_directories(${VENDOR_LIB_DIRS})
 
 # 添加子工程
 add_subdirectory(src)
@@ -400,7 +398,14 @@ TARGET_LINK_LIBRARIES(${APP_NAME}
         Qt5::Widgets
 )`
 
-var testCMakeLists = `function(add_test_executable name)
+var testCMakeLists = `# 查找 GTest 库
+find_package(GTest REQUIRED)
+
+# 启用测试
+enable_testing()
+
+# 定义添加测试执行文件的函数
+function(add_test_executable name)
     file(GLOB_RECURSE files ${name}/*.cpp)
     add_executable(${name}-test ${files})
     target_include_directories(${name}-test 
@@ -408,17 +413,10 @@ var testCMakeLists = `function(add_test_executable name)
     )
     target_link_libraries(${name}-test
         PUBLIC
-            ${LIB_NAME}
             GTest::gtest_main
             ${ARGN}
     )
 endfunction(add_test_executable name)
-
-# 查找 GTest 库
-find_package(GTest REQUIRED)
-
-# 启用测试
-enable_testing()
 
 # 添加测试
 `
