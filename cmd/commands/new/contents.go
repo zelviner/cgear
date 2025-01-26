@@ -4,7 +4,7 @@ var gitignore = `.cache
 build
 bin
 lib
-/zel.json
+zel.json
 `
 
 var clangFormat = `# Run manually to reformat a file:
@@ -296,7 +296,6 @@ install(TARGETS ${LIB_NAME}
 )
 
 # 安装目录
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ DESTINATION include
     FILES_MATCHING PATTERN "*.h"
     PATTERN "*.hpp"
@@ -448,6 +447,11 @@ function(add_test_executable name)
 endfunction(add_test_executable name)
 
 # 添加测试
+`
+
+var projectHeader = `#pragma once
+
+#include <utils/utils.h>
 `
 
 var utilsHeader = `#pragma once
