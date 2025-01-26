@@ -238,6 +238,8 @@ func createLib(libType string) {
 	// 创建C++项目所需文件夹
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", projectPath+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(projectPath, 0755)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "include")+string(filepath.Separator), "\x1b[0m")
+	os.MkdirAll(filepath.Join(projectPath, "include"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "src"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src", "utils")+string(filepath.Separator), "\x1b[0m")
@@ -260,6 +262,8 @@ func createLib(libType string) {
 	utils.WriteToFile(filepath.Join(projectPath, "LICENSE.txt"), license)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "README.md"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "README.md"), strings.Replace(readme, "{{ .ProjectName }}", filepath.Base(projectName), -1))
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "include", projectName+".h"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "include", projectName+".h"), "#pragma once\n\n #include <utils/utils.h>")
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "src", "CMakeLists.txt"), libSrcCMakeLists)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src/utils", "utils.h"), "\x1b[0m")

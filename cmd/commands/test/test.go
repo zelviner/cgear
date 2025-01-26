@@ -44,7 +44,7 @@ func RunTest(cmd *commands.Command, args []string) int {
 
 	appPath := utils.GetZelWorkPath()
 	buildPath = filepath.Join(appPath, "build")
-	testPath = filepath.Join(buildPath, "test")
+	testPath = filepath.Join(appPath, "bin", "test")
 
 	if len(args) == 0 {
 		showTest()

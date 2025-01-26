@@ -218,7 +218,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 设置安装路径
 set(ZEL_VENDOR $ENV{ZEL_HOME}/vendor)
-set(CMAKE_INSTALL_PREFIX ${ZEL_VENDOR}/${LIB_NAME}/${CMAKE_BUILD_TYPE})
+set(CMAKE_INSTALL_PREFIX ${ZEL_VENDOR}/${PROJECT_NAME}/${CMAKE_BUILD_TYPE})
 
 if(WIN32)
     set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -239,7 +239,6 @@ file(GLOB VENDOR_LIB_DIRS ${ZEL_VENDOR}/*/${CMAKE_BUILD_TYPE}/lib)
 list(APPEND CMAKE_PREFIX_PATH ${VENDOR_DIRS})
 include_directories(${VENDOR_INCLUDE_DIRS})
 link_directories(${VENDOR_LIB_DIRS})
-
 
 # 添加子工程
 add_subdirectory(src)
@@ -297,8 +296,8 @@ install(TARGETS ${LIB_NAME}
 )
 
 # 安装目录
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include/${LIB_NAME})
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ DESTINATION include/${LIB_NAME}
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ DESTINATION include
     FILES_MATCHING PATTERN "*.h"
     PATTERN "*.hpp"
 )
@@ -399,7 +398,10 @@ TARGET_LINK_LIBRARIES(${APP_NAME}
         Qt5::Widgets
 )`
 
-var testCMakeLists = `# 查找 GTest 库
+var testCMakeLists = `# 设置测试程序的输出目录
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/test)
+
+# 查找 GTest 库
 find_package(GTest REQUIRED)
 
 # 启用测试
@@ -422,7 +424,17 @@ endfunction(add_test_executable name)
 # 添加测试
 `
 
-var appTestCMakeLists = `function(add_test_executable name)
+var appTestCMakeLists = `# 设置测试程序的输出目录
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/test)
+
+# 查找 GTest 库
+find_package(GTest REQUIRED)
+
+# 启用测试
+enable_testing()
+
+# 定义添加测试执行文件的函数
+function(add_test_executable name)
     file(GLOB_RECURSE files ${name}/*.cpp)
     add_executable(${name}-test ${files})
     target_include_directories(${name}-test 
@@ -434,12 +446,6 @@ var appTestCMakeLists = `function(add_test_executable name)
             ${ARGN}
     )
 endfunction(add_test_executable name)
-
-# 查找 GTest 库
-find_package(GTest REQUIRED)
-
-# 启用测试
-enable_testing()
 
 # 添加测试
 `
