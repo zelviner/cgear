@@ -35,7 +35,9 @@ var (
 	vendorInfo     string
 	repositoryName string
 
-	zelHome = os.Getenv("ZEL_HOME")
+	zelHome   = utils.GetZelHomePath()
+	zelPkg    = utils.GetZelPkgPath()
+	zelVendor = utils.GetZelVendorPath()
 )
 
 func init() {
@@ -54,9 +56,8 @@ func install(cmd *commands.Command, args []string) int {
 		if filepath.IsAbs(vendorInfo) {
 			releaseInstall()
 			return 0
-		} else {
-			getPKG(true)
 		}
+		getPKG(true)
 	default:
 		logger.Log.Fatal("Too many parameters")
 	}
@@ -86,7 +87,7 @@ func getPKG(showInfo bool) {
 	repositoryName = re.FindStringSubmatch(vendorInfo)[2]
 
 	ssh := "git@github.com:" + Author + "/" + repositoryName
-	vendorPath = filepath.Join(zelHome, "pkg", repositoryName)
+	vendorPath = filepath.Join(zelPkg, repositoryName)
 
 	if utils.IsExist(vendorPath) {
 		logger.Log.Errorf(colors.Bold("%s '%s' already exists"), vendorInfo, vendorPath)
@@ -111,7 +112,7 @@ func getPKG(showInfo bool) {
 // showInfo: whether to show download progress
 func downloadPKG(ssh string, vendorPath string, showInfo bool) error {
 
-	logger.Log.Info("Downloading third-party libraries: " + vendorPath)
+	logger.Log.Info("Downloading third-party libraries: " + repositoryName)
 
 	command := exec.Command("git", "clone", ssh, vendorPath, "--depth=1")
 	if showInfo {
@@ -127,10 +128,10 @@ func downloadPKG(ssh string, vendorPath string, showInfo bool) error {
 }
 
 func compileInstall(showInfo bool) error {
+	// debug compile
 	buildPath := filepath.Join(vendorPath, "build")
 	buildType := "Debug"
-	installPath := filepath.Join(zelHome, "vendor", strings.ToLower(buildType), repositoryName)
-
+	installPath := filepath.Join(zelVendor, repositoryName, strings.ToLower(buildType))
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
 		BuildType:             buildType,
@@ -141,59 +142,30 @@ func compileInstall(showInfo bool) error {
 		Generator:             "Ninja",
 		InstallPrefix:         installPath,
 	}
-
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
 		BuildType: buildType,
 		Target:    "install",
 	}
 
-	// Debug
 	err := cmake.Build(&configArg, &buildArg, true, showInfo)
 	if err != nil {
 		return err
 	}
 
-	// Release
+	// release compile
 	buildType = "Release"
-	installPath = filepath.Join(zelHome, "vendor", strings.ToLower(buildType), repositoryName)
+	installPath = filepath.Join(zelVendor, repositoryName, strings.ToLower(buildType))
 	configArg.BuildType = buildType
 	configArg.InstallPrefix = installPath
 	buildArg.BuildType = buildType
+
 	err = cmake.Build(&configArg, &buildArg, true, showInfo)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func InstallGTest() {
-	gtestPath := filepath.Join(zelHome, "vendor", "debug", "include", "gtest")
-	if utils.IsExist(gtestPath) {
-		return
-	}
-
-	vendorInfo = "google:googletest"
-	getPKG(false)
-
-	cmakePath := vendorPath + "/CMakeLists.txt"
-	str := utils.ReadFile(cmakePath)
-	os.Remove(cmakePath)
-	content := `# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)` + "\n\n" + str
-	utils.WriteToFile(cmakePath, content)
-
-	err := compileInstall(false)
-	if err != nil {
-		logger.Log.Fatal(err.Error())
-	}
-
-	// 删除 zel.json 文件
-	zelJsonPath := utils.GetZelWorkPath() + "/zel.json"
-	if utils.IsExist(zelJsonPath) {
-		os.Remove(zelJsonPath)
-	}
 }
 
 func releaseInstall() {
@@ -210,19 +182,51 @@ func releaseInstall() {
 		logger.Log.Fatalf("%s is not a third-party library", vendorInfo)
 	}
 
+	repositoryName = filepath.Base(vendorInfo)
 	logger.Log.Info("Installing third-party libraries: " + vendorInfo)
-	logger.Log.Info("Please set the third-party library name:")
-	repositoryName = utils.ReadLine()
+	logger.Log.Infof("Please set the third-party library name (default: %s):", repositoryName)
+	temp := utils.ReadLine()
+	if temp != "" {
+		repositoryName = temp
+	}
 
 	// 拷贝 vendorInfo 下的 include 和 lib 目录到 debugPath 下
-	debugPath := filepath.Join(zelHome, "vendor", "debug", repositoryName)
+	debugPath := filepath.Join(zelVendor, repositoryName, "debug")
 	utils.CopyDir(includePath, filepath.Join(debugPath, "include"))
 	utils.CopyDir(libPath, filepath.Join(debugPath, "lib"))
 
 	// 拷贝 vendorInfo 下的 include 和 lib 目录到 releasePath 下
-	releasePath := filepath.Join(zelHome, "vendor", "release", repositoryName)
+	releasePath := filepath.Join(zelVendor, repositoryName, "release")
 	utils.CopyDir(includePath, filepath.Join(releasePath, "include"))
 	utils.CopyDir(libPath, filepath.Join(releasePath, "lib"))
 
 	logger.Log.Successf("Successfully installed '%s'", repositoryName)
+}
+
+func InstallGTest() {
+	gtestPath := filepath.Join(zelVendor, "googletest", "debug")
+	if utils.IsExist(gtestPath) {
+		return
+	}
+
+	vendorInfo = "google:googletest"
+	getPKG(true)
+
+	cmakePath := vendorPath + "/CMakeLists.txt"
+	str := utils.ReadFile(cmakePath)
+	os.Remove(cmakePath)
+	content := `# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)` + "\n\n" + str
+	utils.WriteToFile(cmakePath, content)
+
+	err := compileInstall(true)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
+	// 删除 zel.json 文件
+	zelJsonPath := utils.GetZelWorkPath() + "/zel.json"
+	if utils.IsExist(zelJsonPath) {
+		os.Remove(zelJsonPath)
+	}
 }

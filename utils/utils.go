@@ -40,6 +40,29 @@ func GetZelWorkPath() string {
 	return curPath
 }
 
+// GetZelHomePath 获取 Zel 根目录的路径
+func GetZelHomePath() string {
+	return os.Getenv("ZEL_HOME")
+}
+
+// GetZelVendorPath 获取 Zel 第三方库目录的路径
+func GetZelVendorPath() string {
+	zelVendor := filepath.Join(GetZelHomePath(), "vendor")
+	if _, err := os.Stat(zelVendor); os.IsNotExist(err) {
+		return filepath.Join(GetZelHomePath(), "vendor")
+	}
+	return zelVendor
+}
+
+// GetZelPkgPath 获取 Zel 包目录的路径
+func GetZelPkgPath() string {
+	zelPkg := filepath.Join(GetZelHomePath(), "pkg")
+	if _, err := os.Stat(zelPkg); os.IsNotExist(err) {
+		return filepath.Join(GetZelHomePath(), "pkg")
+	}
+	return zelPkg
+}
+
 // 检查当前路径是否为 Zel tool 生成的 C++ 项目
 func IsZelProject(thePath string) bool {
 	cmakeListsFiles := []string{
