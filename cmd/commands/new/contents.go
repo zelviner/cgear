@@ -269,6 +269,14 @@ target_sources(${LIB_NAME}
         ${HEADERS}
 )
 
+# 添加编译时的宏定义
+target_compile_definitions(${LIB_NAME}
+PUBLIC
+    NOLFS  # 可能用于禁用某些与LFS（Large File Storage）相关的功能
+    _CRT_SECURE_NO_WARNINGS  # 禁用对不安全函数的警告
+    _WINSOCK_DEPRECATED_NO_WARNINGS  # 禁用对已弃用Winsock功能的警告
+)
+
 # 为 target 添加头文件
 target_include_directories(${LIB_NAME}
     PUBLIC
@@ -327,6 +335,14 @@ target_sources(${APP_NAME}
         ${HEADERS}
 )
 
+# 添加编译时的宏定义
+target_compile_definitions(${APP_NAME}
+PUBLIC
+    NOLFS  # 可能用于禁用某些与LFS（Large File Storage）相关的功能
+    _CRT_SECURE_NO_WARNINGS  # 禁用对不安全函数的警告
+    _WINSOCK_DEPRECATED_NO_WARNINGS  # 禁用对已弃用Winsock功能的警告
+)
+
 # 为 target 添加头文件
 target_include_directories(${APP_NAME}
     PUBLIC
@@ -377,6 +393,14 @@ add_executable(${APP_NAME}  ${SOURCES} ${RESOURCES}) #debug
 # add_executable(${APP_NAME} WIN32 ${SOURCES} ${RESOURCES}  ${MY_VERSIONINFO_RC}) # release
 
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
+
+# 添加编译时的宏定义
+target_compile_definitions(${APP_NAME}
+PUBLIC
+    NOLFS  # 可能用于禁用某些与LFS（Large File Storage）相关的功能
+    _CRT_SECURE_NO_WARNINGS  # 禁用对不安全函数的警告
+    _WINSOCK_DEPRECATED_NO_WARNINGS  # 禁用对已弃用Winsock功能的警告
+)
 
 # # 为target添加头文件
 # target_include_directories(${APP_NAME}
