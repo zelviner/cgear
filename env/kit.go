@@ -166,7 +166,7 @@ func getKit(compiler Compiler) (*config.Kit, error) {
 
 			kit.Name = fmt.Sprintf("Clang-cl %s %s", version, target)
 			kit.Compiler.C = compiler.CPath
-			kit.Compiler.CXX = compiler.CXXPath
+			kit.Compiler.CXX = compiler.CPath
 			kit.IsTrusted = true
 		}
 

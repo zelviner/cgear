@@ -52,7 +52,7 @@ func CopyFile(src, des string) (written int64, err error) {
 	perm := fi.Mode()
 
 	//desFile, err := os.Create(des)  //无法复制源文件的所有权限
-	desFile, err := os.OpenFile(des, os.O_RDWR|os.O_CREATE|os.O_TRUNC, perm) //复制源文件的所有权限
+	desFile, err := os.OpenFile(des, os.O_RDWR|os.O_CREATE, perm) //复制源文件的所有权限
 	if err != nil {
 		return 0, err
 	}

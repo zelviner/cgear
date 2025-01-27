@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
@@ -77,7 +78,7 @@ func packProject(cmd *commands.Command, args []string) int {
 	// 编译
 	build()
 
-	desPath := filepath.Join(projectPath, "bin", projectName+"-"+versionNumber)
+	desPath := filepath.Join(projectPath, "bin", "release", projectName+"-"+versionNumber)
 	des := filepath.Join(desPath, projectName+"-"+versionNumber+".exe")
 	zipdir := desPath + ".zip"
 
@@ -101,6 +102,9 @@ func packProject(cmd *commands.Command, args []string) int {
 				if err != nil {
 					return err
 				}
+			} else if strings.Contains(info.Name(), "-test.exe") {
+				// Skip the -test.exe file
+				return nil
 			} else {
 				_, err := utils.CopyFile(path, filepath.Join(desPath, info.Name()))
 				if err != nil {

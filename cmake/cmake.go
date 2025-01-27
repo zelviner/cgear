@@ -147,6 +147,12 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "-DCMAKE_INSTALL_PREFIX:PATH="+c.InstallPrefix)
 	}
 
+	// // cmake 工具链文件
+	zelPkg := utils.GetZelPkgPath()
+	result = append(result, "-DCMAKE_TOOLCHAIN_FILE:STRING="+zelPkg+"/vcpkg/scripts/buildsystems/vcpkg.cmake")
+
+	// result = append(result, "-DCMAKE_PREFIX_PATH:PATH="+zelPkg+"/vcpkg/installed/x86-windows/share/fmt")
+
 	return result
 }
 
