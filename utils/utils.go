@@ -63,6 +63,15 @@ func GetZelPkgPath() string {
 	return zelPkg
 }
 
+// GetZelInstalledPath 获取 Zel 第三方库目录的路径
+func GetZelInstalledPath() string {
+	zelInstalled := filepath.Join(GetZelHomePath(), "installed")
+	if _, err := os.Stat(zelInstalled); os.IsNotExist(err) {
+		return filepath.Join(GetZelHomePath(), "installed")
+	}
+	return zelInstalled
+}
+
 // 检查当前路径是否为 Zel tool 生成的 C++ 项目
 func IsZelProject(thePath string) bool {
 	cmakeListsFiles := []string{

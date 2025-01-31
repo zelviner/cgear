@@ -204,109 +204,124 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 `
 
-var projectCMakeLists = `# 最低版本
-cmake_minimum_required(VERSION 3.14) 
+var projectCMakeLists = `# [1] 项目设置 ------------------------------------------------------
+cmake_minimum_required(VERSION 3.14)
+project({{ .ProjectName }} VERSION 0.1.0 LANGUAGES CXX)
 
-# 设置项目名称
-project({{ .ProjectName }})
+# [2] vcpkg工具链配置 ------------------------------------------------
+if(DEFINED ENV{ZEL_HOME})
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(VCPKG_TARGET_TRIPLET "x64-windows")
+  else()
+    set(VCPKG_TARGET_TRIPLET "x86-windows")
+  endif()
 
-# 采用C++14标准
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-# 设置安装路径
-set(ZEL_VENDOR $ENV{ZEL_HOME}/vendor)
-set(CMAKE_INSTALL_PREFIX ${ZEL_VENDOR}/${PROJECT_NAME}/${CMAKE_BUILD_TYPE})
-
-if(WIN32)
-    set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  # 设置工具链文件
+  set(CMAKE_TOOLCHAIN_FILE "$ENV{ZEL_HOME}/scripts/buildsystems/vcpkg.cmake"
+    CACHE STRING "Vcpkg toolchain file" FORCE)
+  
+  # 自动搜索vcpkg包路径
+  list(APPEND CMAKE_PREFIX_PATH "$ENV{ZEL_HOME}/installed/${VCPKG_TARGET_TRIPLET}")
+  message(STATUS "[1] VCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}")
 endif()
 
+# [3] 全局安装路径配置 ----------------------------------------------
+include(GNUInstallDirs)
+if(DEFINED ENV{ZEL_HOME})
+  set(CMAKE_INSTALL_PREFIX "$ENV{ZEL_HOME}/installed/${VCPKG_TARGET_TRIPLET}"
+    CACHE PATH "Install path" FORCE)
+else()
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/installed")
+endif()
+message(STATUS "[2] Install prefix: ${CMAKE_INSTALL_PREFIX}")
+
+# [4] 全局编译选项 --------------------------------------------------
 if(MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
-    # Specify MSVC UTF-8 encoding   
-    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")    
+  add_compile_options(/utf-8 /W4 /WX)
+else()
+  add_compile_options(-Wall -Wextra -Werror)
 endif()
 
-# 设置三方库的安装路径, 搜索路径, 链接路径
-file(GLOB VENDOR_DIRS ${ZEL_VENDOR}/*/${CMAKE_BUILD_TYPE})
-file(GLOB VENDOR_INCLUDE_DIRS ${ZEL_VENDOR}/*/${CMAKE_BUILD_TYPE}/include)
-file(GLOB VENDOR_LIB_DIRS ${ZEL_VENDOR}/*/${CMAKE_BUILD_TYPE}/lib)
-list(APPEND CMAKE_PREFIX_PATH ${VENDOR_DIRS})
-include_directories(${VENDOR_INCLUDE_DIRS})
-link_directories(${VENDOR_LIB_DIRS})
-
-# 添加子工程
+# [5] 子目录添加 ----------------------------------------------------
 add_subdirectory(src)
-add_subdirectory(test)
-`
+add_subdirectory(test)`
 
-var libSrcCMakeLists = `# 设置库名
+var libSrcCMakeLists = `# [1] 库基础配置 ----------------------------------------------------
 set(LIB_NAME {{ .ProjectName }})
+string(TOUPPER ${LIB_NAME} UPPER_LIB_NAME)
 
-# 设置二进制文件输出路径
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+# [2] 收集源码 ------------------------------------------------------
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "*.cpp")
 
-# 查找头文件
-file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.h ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
+# [3] 查找依赖 ------------------------------------------------------
+find_package(fmt CONFIG REQUIRED)
 
-# 查找源文件
-file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
+# [4] 创建库目标 ----------------------------------------------------
+add_library(${LIB_NAME} SHARED ${SOURCES})
+add_library(${PROJECT_NAME}::${LIB_NAME} ALIAS ${LIB_NAME})
 
-{{ .LibInfo }}
-
-# 链接静态库源码
-target_sources(${LIB_NAME}
-    PRIVATE
-        ${SOURCES}
-    PUBLIC
-        ${HEADERS}
+# [5] 生成导出头文件（确保安装后路径正确）---------------------------
+include(GenerateExportHeader)
+generate_export_header(${LIB_NAME}
+  BASE_NAME ${UPPER_LIB_NAME}
+  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/export.h"
 )
-
-# 添加编译时的宏定义
-target_compile_definitions(${LIB_NAME}
-PUBLIC
-    NOLFS  # 可能用于禁用某些与LFS（Large File Storage）相关的功能
-    _CRT_SECURE_NO_WARNINGS  # 禁用对不安全函数的警告
-    _WINSOCK_DEPRECATED_NO_WARNINGS  # 禁用对已弃用Winsock功能的警告
-)
-
-# 为 target 添加头文件
 target_include_directories(${LIB_NAME}
-    PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}
+  PUBLIC 
+    "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
 )
 
-# # 为 target 添加库文件目录 (如果有需要，可以填入库文件目录路径)
-# target_link_directories(${LIB_NAME}
-#     PUBLIC
-#         path/to/libraries
-# )
+# [6] 目标属性配置 --------------------------------------------------
+target_compile_definitions(${LIB_NAME} PRIVATE ${UPPER_LIB_NAME}_EXPORTS)
+target_link_libraries(${LIB_NAME} PUBLIC fmt::fmt)
 
-
-# # 为 target 添加需要链接的共享库 （如果有需要，可以填入共享库名字)
-# TARGET_LINK_LIBRARIES(${LIB_NAME}
-#     PUBLIC
-#         zel
-# )
-
-# 安装目标文件
-install(TARGETS ${LIB_NAME}
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+# [7] 安装规则 ------------------------------------------------------
+install(TARGETS ${LIB_NAME} EXPORT ${LIB_NAME}Targets
+    RUNTIME DESTINATION "$<$<CONFIG:Debug>:debug/>bin"
+    LIBRARY DESTINATION "$<$<CONFIG:Debug>:debug/>lib"
+    ARCHIVE DESTINATION "$<$<CONFIG:Debug>:debug/>lib"
 )
 
-# 安装目录
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ DESTINATION include
-    FILES_MATCHING PATTERN "*.h"
-    PATTERN "*.hpp"
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_NAME}
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
 )
+
+install(FILES "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/export.h"
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+)
+
+# [8] 导出配置 ------------------------------------------------------
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  ${CMAKE_SOURCE_DIR}/cmake/${LIB_NAME}Config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}Config.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_DATADIR}/${LIB_NAME}
+)
+
+write_basic_package_version_file(
+  ${LIB_NAME}ConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+install(EXPORT ${LIB_NAME}Targets
+  FILE ${LIB_NAME}Targets.cmake
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${LIB_NAME}
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}Config.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${LIB_NAME}
+)`
+
+var configCMakeIn = `@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/{{ .ProjectName }}Targets.cmake")
+check_required_components({{ .ProjectName }}) 
 `
 
 var appSrcCMakeLists = `# 设置应用程序名
@@ -420,30 +435,27 @@ TARGET_LINK_LIBRARIES(${APP_NAME}
         Qt5::Widgets
 )`
 
-var testCMakeLists = `# 设置测试程序的输出目录
+var testCMakeLists = `# [1] 测试配置 -----------------------------------------------------
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/test)
-
-# 查找 GTest 库
-find_package(GTest REQUIRED)
-
-# 启用测试
 enable_testing()
 
-# 定义添加测试执行文件的函数
-function(add_test_executable name)
-    file(GLOB_RECURSE files ${name}/*.cpp)
-    add_executable(${name}-test ${files})
-    target_include_directories(${name}-test 
-        PUBLIC
-    )
-    target_link_libraries(${name}-test
-        PUBLIC
-            GTest::gtest_main
-            ${ARGN}
-    )
-endfunction(add_test_executable name)
+# [2] 查找依赖 -----------------------------------------------------
+find_package(GTest REQUIRED)
 
-# 添加测试
+# [3] 添加测试目标 --------------------------------------------------
+function(add_integration_test name)
+  set(TEST_NAME "${name}-test")
+  file(GLOB_RECURSE files ${name}/*.cpp)
+  add_executable(${TEST_NAME} ${files})
+  target_link_libraries(${TEST_NAME}
+    PRIVATE 
+      GTest::gtest_main
+       ${ARGN}
+  )
+  add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endfunction()
+
+# [4] 添加具体测试 --------------------------------------------------
 `
 
 var appTestCMakeLists = `# 设置测试程序的输出目录
@@ -474,13 +486,28 @@ endfunction(add_test_executable name)
 
 var projectHeader = `#pragma once
 
-#include <utils/utils.h>
+#include "utils/utils.h"
 `
 
 var utilsHeader = `#pragma once
+
+#include "{{ .ProjectName }}/export.h"
+
+namespace {{ .ProjectName }} {
+
+    {{ .ProjectNameUpper }}_EXPORT void print_hello();
+
+}
 `
 
 var utilsCPP = `#include "utils.h"
+#include <iostream>
+
+namespace {{ .ProjectName }} {
+
+void print_hello() { std::cout << "Hello, world!" << std::endl; }
+
+} // namespace {{ .ProjectName }}
 `
 
 var mainCPP = `#include <iostream>
@@ -493,11 +520,11 @@ int main(int argc, char *argv[]) {
 }
 `
 
-var staticLibInfo = `# 编译静态库
-add_library(${LIB_NAME} "")`
+var staticLibInfo = `# 创建静态库
+add_library(${LIB_NAME} ${SOURCES})`
 
-var dynamicLibInfo = `# 编译动态库
-add_library(${LIB_NAME} SHARED "")`
+var dynamicLibInfo = `# 创建动态库
+add_library(${LIB_NAME} SHARED ${SOURCES})`
 
 var launch = `{
     // 使用 IntelliSense 了解相关属性。 

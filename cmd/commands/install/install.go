@@ -5,7 +5,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/ZEL-30/zel/cmake"
 	"github.com/ZEL-30/zel/cmd/commands"
@@ -14,6 +13,9 @@ import (
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
 	"github.com/ZEL-30/zel/utils"
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // CmdInstall represents the install command
@@ -35,9 +37,9 @@ var (
 	vendorInfo     string
 	repositoryName string
 
-	zelHome   = utils.GetZelHomePath()
-	zelPkg    = utils.GetZelPkgPath()
-	zelVendor = utils.GetZelVendorPath()
+	zelHome      = utils.GetZelHomePath()
+	zelPkg       = utils.GetZelPkgPath()
+	zelInstalled = utils.GetZelInstalledPath()
 )
 
 func init() {
@@ -131,7 +133,6 @@ func compileInstall(showInfo bool) error {
 	// debug compile
 	buildPath := filepath.Join(vendorPath, "build")
 	buildType := "Debug"
-	installPath := filepath.Join(zelVendor, repositoryName, strings.ToLower(buildType))
 	configArg := cmake.ConfigArg{
 		NoWarnUnusedCli:       true,
 		BuildType:             buildType,
@@ -140,7 +141,6 @@ func compileInstall(showInfo bool) error {
 		ProjectPath:           vendorPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",
-		InstallPrefix:         installPath,
 	}
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
@@ -155,9 +155,7 @@ func compileInstall(showInfo bool) error {
 
 	// release compile
 	buildType = "Release"
-	installPath = filepath.Join(zelVendor, repositoryName, strings.ToLower(buildType))
 	configArg.BuildType = buildType
-	configArg.InstallPrefix = installPath
 	buildArg.BuildType = buildType
 
 	err = cmake.Build(&configArg, &buildArg, true, showInfo)
@@ -166,6 +164,87 @@ func compileInstall(showInfo bool) error {
 	}
 
 	return nil
+}
+
+// 自定义列表项
+type archItem struct {
+	title, desc string
+}
+
+func (i archItem) Title() string       { return i.title }
+func (i archItem) Description() string { return i.desc }
+func (i archItem) FilterValue() string { return i.title }
+
+// 主模型
+type archModel struct {
+	list   list.Model
+	choice string
+}
+
+// 初始化模型
+func newArchModel() archModel {
+	items := []list.Item{
+		archItem{
+			title: "x86-windows",
+			desc:  "32位 Windows 架构（推荐）",
+		},
+		archItem{
+			title: "x64-windows",
+			desc:  "64位 Windows 架构",
+		},
+	}
+
+	l := list.New(items, list.NewDefaultDelegate(), 40, 14)
+	l.Title = "请选择目标架构"
+	l.Styles.Title = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#3C3C3C")).
+		Padding(0, 1)
+
+	return archModel{list: l}
+}
+
+func (m archModel) Init() tea.Cmd { return nil }
+
+func (m archModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "enter":
+			if selected, ok := m.list.SelectedItem().(archItem); ok {
+				m.choice = selected.title
+			}
+			return m, tea.Quit
+		case "ctrl+c", "q":
+			return m, tea.Quit
+		}
+	case tea.WindowSizeMsg:
+		m.list.SetWidth(msg.Width)
+		return m, nil
+	}
+
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+	return m, cmd
+}
+
+func (m archModel) View() string {
+	return "\n" + m.list.View()
+}
+
+// 使用选择器的函数
+func selectArch() string {
+	p := tea.NewProgram(newArchModel())
+	m, err := p.Run()
+	if err != nil {
+		logger.Log.Fatalf("选择架构失败:", err)
+	}
+
+	if model, ok := m.(archModel); ok && model.choice != "" {
+		return model.choice
+	}
+	logger.Log.Fatal("未选择架构")
+	return ""
 }
 
 func releaseInstall() {
@@ -190,43 +269,17 @@ func releaseInstall() {
 		repositoryName = temp
 	}
 
-	// 拷贝 vendorInfo 下的 include 和 lib 目录到 debugPath 下
-	debugPath := filepath.Join(zelVendor, repositoryName, "debug")
-	utils.CopyDir(includePath, filepath.Join(debugPath, "include"))
-	utils.CopyDir(libPath, filepath.Join(debugPath, "lib"))
+	// 调用选择器
+	archDir := selectArch()
 
 	// 拷贝 vendorInfo 下的 include 和 lib 目录到 releasePath 下
-	releasePath := filepath.Join(zelVendor, repositoryName, "release")
-	utils.CopyDir(includePath, filepath.Join(releasePath, "include"))
-	utils.CopyDir(libPath, filepath.Join(releasePath, "lib"))
+	releasePath := filepath.Join(zelInstalled, archDir)
+	utils.CopyDir(includePath, filepath.Join(releasePath, "include", repositoryName))
+	utils.CopyDir(libPath, filepath.Join(releasePath, "lib", repositoryName))
+
+	// 拷贝 vendorInfo 下的 include 和 lib 目录到 debugPath 下
+	debugPath := filepath.Join(releasePath, "debug")
+	utils.CopyDir(libPath, filepath.Join(debugPath, "lib", repositoryName))
 
 	logger.Log.Successf("Successfully installed '%s'", repositoryName)
-}
-
-func InstallGTest() {
-	gtestPath := filepath.Join(zelVendor, "googletest", "debug")
-	if utils.IsExist(gtestPath) {
-		return
-	}
-
-	vendorInfo = "google:googletest"
-	getPKG(true)
-
-	cmakePath := vendorPath + "/CMakeLists.txt"
-	str := utils.ReadFile(cmakePath)
-	os.Remove(cmakePath)
-	content := `# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)` + "\n\n" + str
-	utils.WriteToFile(cmakePath, content)
-
-	err := compileInstall(true)
-	if err != nil {
-		logger.Log.Fatal(err.Error())
-	}
-
-	// 删除 zel.json 文件
-	zelJsonPath := utils.GetZelWorkPath() + "/zel.json"
-	if utils.IsExist(zelJsonPath) {
-		os.Remove(zelJsonPath)
-	}
 }

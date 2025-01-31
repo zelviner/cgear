@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/install"
 	"github.com/ZEL-30/zel/cmd/commands/version"
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
@@ -68,7 +67,7 @@ func Create(cmd *commands.Command, args []string) int {
 		logger.Log.Fatal("Parse args err" + err.Error())
 	}
 
-	install.InstallGTest()
+	// install.InstallGTest()
 
 	output = cmd.Out()
 	projectName = args[0]
@@ -246,6 +245,8 @@ func createLib(libType string) {
 	os.MkdirAll(filepath.Join(projectPath, "test"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vecode")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, ".vscode"), 0755)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake")+string(filepath.Separator), "\x1b[0m")
+	os.MkdirAll(filepath.Join(projectPath, "cmake"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "docs"), 0755)
 
@@ -265,11 +266,13 @@ func createLib(libType string) {
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src", projectName+".h"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "src", projectName+".h"), projectHeader)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src/utils", "utils.h"), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.h"), utilsHeader)
+	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.h"), strings.Replace(strings.Replace(utilsHeader, "{{ .ProjectName }}", filepath.Base(projectName), -1), "{{ .ProjectNameUpper }}", strings.ToUpper(filepath.Base(projectName)), -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "src/utils", "utils.cpp"), "\x1b[0m")
-	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.cpp"), utilsCPP)
+	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.cpp"), strings.Replace(utilsCPP, "{{ .ProjectName }}", filepath.Base(projectName), -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "test", "CMakeLists.txt"), testCMakeLists)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", projectName+"Config.cmake.in"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "cmake", projectName+"Config.cmake.in"), strings.Replace(configCMakeIn, "{{ .ProjectName }}", filepath.Base(projectName), -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vsocde", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, ".vscode", "launch.json"), launch)
 
@@ -317,7 +320,7 @@ func createTestCase() {
 	}
 	defer file.Close()
 
-	_, err = file.WriteString(fmt.Sprintf("add_test_executable(%s)\n", projectName))
+	_, err = file.WriteString(fmt.Sprintf("add_integration_test(%s)\n", projectName))
 	if err != nil {
 		logger.Log.Fatalf("Write '%s' err: %s", filepath.Join(testsPath, "CMakeLists.txt"), err.Error())
 	}

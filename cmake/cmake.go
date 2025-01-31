@@ -20,7 +20,6 @@ type ConfigArg struct {
 	ProjectPath           string      // 源代码路径
 	BuildPath             string      // 构建目录
 	Generator             string      // 生成器
-	InstallPrefix         string      // 安装前缀
 	CXXFlags              string      // C++ 编译参数
 }
 
@@ -142,16 +141,6 @@ func (c *ConfigArg) toStringSlice() []string {
 	if c.Generator != "" {
 		result = append(result, "-G="+c.Generator)
 	}
-
-	if c.InstallPrefix != "" {
-		result = append(result, "-DCMAKE_INSTALL_PREFIX:PATH="+c.InstallPrefix)
-	}
-
-	// // cmake 工具链文件
-	zelPkg := utils.GetZelPkgPath()
-	result = append(result, "-DCMAKE_TOOLCHAIN_FILE:STRING="+zelPkg+"/vcpkg/scripts/buildsystems/vcpkg.cmake")
-
-	// result = append(result, "-DCMAKE_PREFIX_PATH:PATH="+zelPkg+"/vcpkg/installed/x86-windows/share/fmt")
 
 	return result
 }
