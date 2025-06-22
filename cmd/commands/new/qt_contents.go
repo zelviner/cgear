@@ -1,79 +1,207 @@
 package new
 
-var qtSrcCMakeLists = `# 设置应用程序名
+var qtSrcCMakeLists = `# [1] 设置应用程序名称 ------------------------------------------------
 set(APP_NAME {{ .ProjectName }})
+string(TOUPPER ${APP_NAME} UPPER_APP_NAME)
 
-# 设置二进制文件输出路径
+# [2] 输出目录配置 -----------------------------------------------------
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-# 设置Qt5
+# [3] Qt 编译设置 -----------------------------------------------------
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# 寻找Qt5库
+# [4] 查找 Qt5 组件 ---------------------------------------------------
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(zel CONFIG REQUIRED)
 
-# 设置UI文件搜索路径
+# [5] UI 搜索路径 -----------------------------------------------------
 list(APPEND CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR}/res/ui)
 
-# 查找源文件
-file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
+# [6] 查找源文件/资源 --------------------------------------------------
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS 
+    ${CMAKE_CURRENT_LIST_DIR}/*.cpp 
+    ${CMAKE_CURRENT_LIST_DIR}/*.hpp
+)
 
-# 添加资源文件
-file(GLOB RESOURCES ${CMAKE_SOURCE_DIR}/res/rc/*)
+file(GLOB RESOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/res/rc/*)
 
-# 添加可执行文件
+# [7] 添加可执行文件 ---------------------------------------------------
 add_executable(${APP_NAME}  ${SOURCES} ${RESOURCES}) #debug
 # add_executable(${APP_NAME} WIN32 ${SOURCES} ${RESOURCES}  ${MY_VERSIONINFO_RC}) # release
 
+# [8] 包含 Qt 的私有头（如果有需要，比如自定义窗口样式）--------------
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 
-# 添加编译时的宏定义
-target_compile_definitions(${APP_NAME}
-PUBLIC
-    NOLFS  # 可能用于禁用某些与LFS（Large File Storage）相关的功能
-    _CRT_SECURE_NO_WARNINGS  # 禁用对不安全函数的警告
-    _WINSOCK_DEPRECATED_NO_WARNINGS  # 禁用对已弃用Winsock功能的警告
+# [9] 添加宏定义 -------------------------------------------------------
+target_compile_definitions(${APP_NAME} PUBLIC
+    NOLFS
+    _CRT_SECURE_NO_WARNINGS
+    _WINSOCK_DEPRECATED_NO_WARNINGS
 )
 
-# # 为target添加头文件
-# target_include_directories(${APP_NAME}
-#     PUBLIC
-# )
-
-# # 为 target 添加库文件目录 (如果有需要，可以填入库文件目录路径)
-# target_link_directories(${APP_NAME}
-#     PUBLIC
-#         path/to/libraries
-# )
-
-# 为target添加需要链接的共享库
-TARGET_LINK_LIBRARIES(${APP_NAME}
-    PRIVATE
-        Qt5::Core
-        Qt5::Gui
-        Qt5::Widgets
+# [10] 链接 Qt 库 ------------------------------------------------------
+target_link_libraries(${APP_NAME} PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Widgets
+    fmt::fmt
+    zel::zel
 )`
 
-var qtUtilsHeader = `#pragma once
+var qtMainWindowUI = `<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="push_btn">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>160</y>
+      <width>211</width>
+      <height>171</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>PushButton</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>`
 
-namespace {{ .ProjectName }} {
+var qtTemplateUI = `<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Template</class>
+ <widget class="QWidget" name="Template">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Template</string>
+  </property>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
 
-    void print_hello();
+`
 
+var qtMainCPP = `#include "app/main_window.h"
+
+#include <QApplication>
+#pragma comment(lib, "user32.lib")
+
+int main(int argc, char *argv[]) {
+
+    // 设置高DPI
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
+    QApplication a(argc, argv);
+    MainWindow   w;
+    w.show();
+    return a.exec();
 }
 `
 
-var qtUtilsCPP = `#include "utils.h"
-#include <iostream>
+var qtImagesRC = `<!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+     <!-- <file>../images/logo.ico</file> -->
+ </qresource>
+ </RCC>
+`
 
-namespace {{ .ProjectName }} {
+var qtLogoRc = `// IDI_ICON1 ICON "../images/logo.ico"`
 
-void print_hello() { std::cout << "Hello, world!" << std::endl; }
+var qtMainWindowHeader = `#pragma once
+#include "ui_main_window.h"
+#include <QMainWindow>
 
-} // namespace {{ .ProjectName }}
+class MainWindow : public QMainWindow {
+    Q_OBJECT
+
+  public:
+    MainWindow(QMainWindow *parent = nullptr);
+    ~MainWindow();
+
+  private:
+    // 初始化窗口
+    void initWindow();
+
+    // 初始化UI
+    void initUI();
+
+    /// @brief 初始化信号槽
+    void initSignalSlot();
+
+  private:
+    Ui_MainWindow *ui_;
+};
+`
+var qtMainWindowCPP = `#include "main_window.h"
+
+MainWindow::MainWindow(QMainWindow *parent)
+    : QMainWindow(parent)
+    , ui_(new Ui_MainWindow) {
+    ui_->setupUi(this);
+
+    initWindow();
+
+    initUI();
+
+    initSignalSlot();
+}
+
+MainWindow::~MainWindow() { delete ui_; }
+
+void MainWindow::initWindow() {
+
+    // 设置窗口标题
+    setWindowTitle("Template");
+}
+
+void MainWindow::initUI() {
+    // 插入图片
+    QPixmap pixmap(":/image/data.png");
+    ui_->push_btn->setIcon(pixmap);
+    ui_->push_btn->setIconSize(pixmap.size());
+    ui_->push_btn->setFixedSize(pixmap.size());
+}
+
+void MainWindow::initSignalSlot() {}
 `

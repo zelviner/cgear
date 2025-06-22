@@ -204,11 +204,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 `
 
-var projectCMakeLists = `# [1] 项目设置 ------------------------------------------------------
+var projectCMakeLists = `# [1] 项目设置 ----------------------------------------------------
 cmake_minimum_required(VERSION 3.14)
 project({{ .ProjectName }} VERSION 0.1.0 LANGUAGES CXX)
 
-# [2] vcpkg工具链配置 ------------------------------------------------
+# [2] vcpkg工具链配置 ----------------------------------------------
 if(DEFINED ENV{ZEL_HOME})
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(VCPKG_TARGET_TRIPLET "x64-windows")
@@ -242,139 +242,16 @@ else()
   add_compile_options(-Wall -Wextra -Werror)
 endif()
 
-# [5] 子目录添加 ----------------------------------------------------
+# [5] 链接库配置路径 -------------------------------------------------
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  link_directories(${CMAKE_INSTALL_PREFIX}/debug/lib)
+else()
+  link_directories(${CMAKE_INSTALL_PREFIX}/lib)
+endif()
+
+# [6] 子目录添加 ----------------------------------------------------
 add_subdirectory(src)
 add_subdirectory(test)`
-
-var libSrcCMakeLists = `# [1] 库基础配置 ----------------------------------------------------
-set(LIB_NAME {{ .ProjectName }})
-string(TOUPPER ${LIB_NAME} UPPER_LIB_NAME)
-
-# [2] 收集源码 ------------------------------------------------------
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "*.cpp")
-
-# [3] 查找依赖 ------------------------------------------------------
-find_package(fmt CONFIG REQUIRED)
-
-# [4] 创建库目标 ----------------------------------------------------
-add_library(${LIB_NAME} SHARED ${SOURCES})
-add_library(${PROJECT_NAME}::${LIB_NAME} ALIAS ${LIB_NAME})
-
-# [5] 生成导出头文件（确保安装后路径正确）---------------------------
-include(GenerateExportHeader)
-generate_export_header(${LIB_NAME}
-  BASE_NAME ${UPPER_LIB_NAME}
-  EXPORT_FILE_NAME "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/export.h"
-)
-target_include_directories(${LIB_NAME}
-  PUBLIC 
-    "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>"
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
-)
-
-# [6] 目标属性配置 --------------------------------------------------
-target_compile_definitions(${LIB_NAME} PRIVATE ${UPPER_LIB_NAME}_EXPORTS)
-target_link_libraries(${LIB_NAME} PUBLIC fmt::fmt)
-
-# [7] 安装规则 ------------------------------------------------------
-install(TARGETS ${LIB_NAME} EXPORT ${LIB_NAME}Targets
-    RUNTIME DESTINATION "$<$<CONFIG:Debug>:debug/>bin"
-    LIBRARY DESTINATION "$<$<CONFIG:Debug>:debug/>lib"
-    ARCHIVE DESTINATION "$<$<CONFIG:Debug>:debug/>lib"
-)
-
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_NAME}
-  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
-
-install(FILES "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/export.h"
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
-)
-
-# [8] 导出配置 ------------------------------------------------------
-include(CMakePackageConfigHelpers)
-configure_package_config_file(
-  ${CMAKE_SOURCE_DIR}/cmake/${LIB_NAME}Config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}Config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_DATADIR}/${LIB_NAME}
-)
-
-write_basic_package_version_file(
-  ${LIB_NAME}ConfigVersion.cmake
-  VERSION ${PROJECT_VERSION}
-  COMPATIBILITY SameMajorVersion
-)
-
-install(EXPORT ${LIB_NAME}Targets
-  FILE ${LIB_NAME}Targets.cmake
-  NAMESPACE ${PROJECT_NAME}::
-  DESTINATION ${CMAKE_INSTALL_DATADIR}/${LIB_NAME}
-)
-
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}Config.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_DATADIR}/${LIB_NAME}
-)`
-
-var configCMakeIn = `@PACKAGE_INIT@
-
-include("${CMAKE_CURRENT_LIST_DIR}/{{ .ProjectName }}Targets.cmake")
-check_required_components({{ .ProjectName }}) 
-`
-
-var appSrcCMakeLists = `# 设置应用程序名
-set(APP_NAME {{ .ProjectName }})
-
-# 设置二进制文件输出路径
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-
-# 查找头文件
-file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_LIST_DIR}/*.h ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
-
-# 查找源文件
-file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
-
-# 编译应用程序
-add_executable(${APP_NAME} "")
-
-# 链接源码
-target_sources(${APP_NAME}
-    PRIVATE
-        ${SOURCES}
-    PUBLIC
-        ${HEADERS}
-)
-
-# 添加编译时的宏定义
-target_compile_definitions(${APP_NAME}
-PUBLIC
-    NOLFS  # 可能用于禁用某些与LFS（Large File Storage）相关的功能
-    _CRT_SECURE_NO_WARNINGS  # 禁用对不安全函数的警告
-    _WINSOCK_DEPRECATED_NO_WARNINGS  # 禁用对已弃用Winsock功能的警告
-)
-
-# 为 target 添加头文件
-target_include_directories(${APP_NAME}
-    PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}
-)
-
-# # 为 target 添加库文件目录 (如果有需要，可以填入库文件目录路径)
-# target_link_directories(${APP_NAME}
-#     PUBLIC
-#         path/to/libraries
-# )
-
-# # 为 target 添加需要链接的共享库 （如果有需要，可以填入共享库名字)
-# TARGET_LINK_LIBRARIES(${APP_NAME}
-#     PUBLIC
-#         zel
-# )
-`
 
 var testCMakeLists = `# [1] 测试配置 -----------------------------------------------------
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/test)
@@ -430,43 +307,6 @@ var projectHeader = `#pragma once
 #include "utils/utils.h"
 `
 
-var utilsHeader = `#pragma once
-
-#include "{{ .ProjectName }}/export.h"
-
-namespace {{ .ProjectName }} {
-
-    {{ .ProjectNameUpper }}_EXPORT void print_hello();
-
-}
-`
-
-var utilsCPP = `#include "utils.h"
-#include <iostream>
-
-namespace {{ .ProjectName }} {
-
-void print_hello() { std::cout << "Hello, world!" << std::endl; }
-
-} // namespace {{ .ProjectName }}
-`
-
-var mainCPP = `#include <iostream>
-
-int main(int argc, char *argv[]) {
-
-    std::cout << "Welcome to zel!" << std::endl;
-
-    return 0;
-}
-`
-
-var staticLibInfo = `# 创建静态库
-add_library(${LIB_NAME} ${SOURCES})`
-
-var dynamicLibInfo = `# 创建动态库
-add_library(${LIB_NAME} SHARED ${SOURCES})`
-
 var launch = `{
     // 使用 IntelliSense 了解相关属性。 
     // 悬停以查看现有属性的描述。
@@ -494,156 +334,4 @@ var testLaunch = `{
             "cwd": "${workspaceFolder}"
         },
         //{{ .configuration }}
-`
-
-var imagesRC = `<!DOCTYPE RCC><RCC version="1.0">
- <qresource>
-     <!-- <file>../images/logo.ico</file> -->
- </qresource>
- </RCC>
-`
-
-var logoRc = `// IDI_ICON1 ICON "../images/logo.ico"`
-
-var mainWindowUI = `<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>800</width>
-    <height>600</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>MainWindow</string>
-  </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="push_btn">
-    <property name="geometry">
-     <rect>
-      <x>240</x>
-      <y>160</y>
-      <width>211</width>
-      <height>171</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>PushButton</string>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>800</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
- </widget>
- <resources/>
- <connections/>
-</ui>`
-
-var templateUI = `<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
- <class>Template</class>
- <widget class="QWidget" name="Template">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>800</width>
-    <height>600</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Template</string>
-  </property>
- </widget>
- <resources/>
- <connections/>
-</ui>
-
-`
-
-var qtMainCPP = `#include "app/main_window.h"
-
-#include <QApplication>
-#pragma comment(lib, "user32.lib")
-
-int main(int argc, char *argv[]) {
-
-    // 设置高DPI
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-
-    QApplication a(argc, argv);
-    MainWindow   w;
-    w.show();
-    return a.exec();
-}
-`
-
-var appHeader = `#pragma once
-#include "ui_main_window.h"
-#include <QMainWindow>
-
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-
-  public:
-    MainWindow(QMainWindow *parent = nullptr);
-    ~MainWindow();
-
-  private:
-    // 初始化窗口
-    void initWindow();
-
-    // 初始化UI
-    void initUI();
-
-    /// @brief 初始化信号槽
-    void initSignalSlot();
-
-  private:
-    Ui_MainWindow *ui_;
-};
-`
-var appCPP = `#include "main_window.h"
-
-MainWindow::MainWindow(QMainWindow *parent)
-    : QMainWindow(parent)
-    , ui_(new Ui_MainWindow) {
-    ui_->setupUi(this);
-
-    initWindow();
-
-    initUI();
-
-    initSignalSlot();
-}
-
-MainWindow::~MainWindow() { delete ui_; }
-
-void MainWindow::initWindow() {
-
-    // 设置窗口标题
-    setWindowTitle("Template");
-}
-
-void MainWindow::initUI() {
-    // 插入图片
-    QPixmap pixmap(":/image/data.png");
-    ui_->push_btn->setIcon(pixmap);
-    ui_->push_btn->setIconSize(pixmap.size());
-    ui_->push_btn->setFixedSize(pixmap.size());
-}
-
-void MainWindow::initSignalSlot() {}
 `
