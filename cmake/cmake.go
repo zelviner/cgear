@@ -113,6 +113,7 @@ func (c *ConfigArg) toStringSlice() []string {
 	var result []string
 
 	if c.NoWarnUnusedCli {
+		result = append(result, "-DCMAKE_TOOLCHAIN_FILE="+c.ProjectPath+"/cmake/clang-32bit-toolchain.cmake")
 		result = append(result, "--no-warn-unused-cli")
 	}
 
