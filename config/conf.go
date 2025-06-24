@@ -21,10 +21,12 @@ const (
 
 type Config struct {
 	Version         int
-	Toolchain       *Toolchain `json:"toolchain" yaml:"toolchain"`   // 编译工具链
-	Platform        string     `json:"platform" yaml:"platform"`     // 构建平台
-	Generator       string     `json:"generator" yaml:"generator"`   // 生成器
-	BuildType       string     `json:"build_type" yaml:"build_type"` // 构建类型
+	Toolchain       *Toolchain `json:"toolchain" yaml:"toolchain"`       // 编译工具链
+	Generator       string     `json:"generator" yaml:"generator"`       // 生成器
+	Platform        string     `json:"platform" yaml:"platform"`         // 编译架构
+	BuildType       string     `json:"build_type" yaml:"build_type"`     // 编译类型
+	ProjectType     string     `json:"project_type" yaml:"project_type"` // 项目类型
+	ProjectPath     string     `json:"project_path" yaml:"project_path"` // 项目路径
 	WatchExts       []string   `json:"watch_exts" yaml:"watch_exts"`
 	WatchExtsStatic []string   `json:"watch_exts_static" yaml:"watch_exts_static"`
 }
@@ -39,13 +41,6 @@ type Toolchain struct {
 type Compiler struct {
 	C   string `json:"C" yaml:"C"`
 	CXX string `json:"CXX" yaml:"CXX"`
-}
-
-// database 保存数据库连接信息
-type database struct {
-	Driver string
-	Conn   string
-	Dir    string
 }
 
 var Conf = Config{
@@ -135,12 +130,12 @@ func parseYAML(path string, v interface{}) error {
 	return err
 }
 
-func SaveConfig() error {
+func SaveConfig(projectPath string) error {
 	configJson, err := json.MarshalIndent(Conf, "", "\t")
 	if err != nil {
 		logger.Log.Error(err.Error())
 	}
 
-	err = os.WriteFile("zel.json", configJson, 0644)
+	err = os.WriteFile(filepath.Join(projectPath, "zel.json"), configJson, 0644)
 	return err
 }

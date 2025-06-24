@@ -1,24 +1,24 @@
 package env
 
 import (
-	"fmt"
-
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
 	ui "github.com/ZEL-30/zel/ui/select"
 )
 
 func SetBuildType() {
-	options := []string{
-		"Debug", "Release", "RelWithDebInfo", "MinSizeRel",
-	}
-	choice, err := ui.SelectOption("请选择构建类型：", options)
+	buildTypes := []string{"Debug", "Release", "RelWithDebInfo", "MinSizeRel"}
+
+	buildType, cancelled, err := ui.ListOption("Please select build type: ", buildTypes, func(s string) string { return s })
 	if err != nil {
-		msg := fmt.Sprintf("选择构建类型失败：%s", err.Error())
-		logger.Log.Error(msg)
+		logger.Log.Errorf("Failed to select build type: %v", err)
 		return
 	}
-	config.Conf.BuildType = choice
-	config.SaveConfig()
-	logger.Log.Successf("构建类型设置为：%s", config.Conf.BuildType)
+	if cancelled {
+		logger.Log.Info("Build type setting cancelled")
+		return
+	}
+
+	config.Conf.BuildType = buildType
+	logger.Log.Successf("Build type set to: %s", buildType)
 }

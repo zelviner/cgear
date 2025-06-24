@@ -9,19 +9,21 @@ import (
 
 	"github.com/ZEL-30/zel/cmd/commands"
 	"github.com/ZEL-30/zel/cmd/commands/version"
+	"github.com/ZEL-30/zel/config"
+	"github.com/ZEL-30/zel/env"
 	"github.com/ZEL-30/zel/logger"
 	"github.com/ZEL-30/zel/logger/colors"
+	ui "github.com/ZEL-30/zel/ui/select"
 	"github.com/ZEL-30/zel/utils"
 )
 
 var (
-	test         bool
-	qt           bool
-	zelVersion   utils.DocValue
-	output       io.Writer
-	projectPath  string
-	projectName  string
-	projectTypes = []string{"Application", "QT Application", "Static library", "Dynamic library", "Test cases"}
+	test        bool
+	qt          bool
+	zelVersion  utils.DocValue
+	output      io.Writer
+	projectPath string
+	projectName string
 )
 
 var CmdNew = &commands.Command{
@@ -81,32 +83,59 @@ func Create(cmd *commands.Command, args []string) int {
 		}
 	}
 
-	logger.Log.Info("Please selecte project type:")
-	for i, projectType := range projectTypes {
-		fmt.Printf("\t[%d] %s\n", i+1, projectType)
+	config.Conf.ProjectPath = projectPath
+
+	// 选择工具链
+	env.SetToolchain()
+
+	// 选择编译架构
+	env.SetPlatform()
+
+	// 选择编译类型
+	env.SetBuildType()
+
+	// 选择生成器
+	env.SetGenerator()
+
+	// 选择项目类型
+	projectTypes := []string{"Application", "QT Application", "Static library", "Dynamic library", "Test cases"}
+	projectType, cancelled, err := ui.ListOption("Please select project type: ", projectTypes, func(p string) string { return p })
+	if err != nil {
+		logger.Log.Errorf("Failed to select project type: %s", err)
+		os.Exit(2)
 	}
 
-	var index int
-	fmt.Scanf("%d", &index)
+	if cancelled {
+		logger.Log.Info("Cancelled selecting project type")
+		os.Exit(0)
+	}
 
-	switch index {
-	case 1:
+	config.Conf.ProjectType = projectType
+
+	switch projectType {
+	case "Application":
 		createApp()
 
-	case 2:
+	case "QT Application":
 		createQTApp()
 
-	case 3:
+	case "Static library":
 		createLib("static library")
 
-	case 4:
+	case "Dynamic library":
 		createLib("dynamic library")
 
-	case 5:
+	case "Test cases":
 		createTestCase()
 
 	default:
 		createApp()
+	}
+
+	err = config.SaveConfig(projectPath)
+	if err != nil {
+		logger.Log.Errorf("Failed to save config: %s", err)
+		os.Exit(2)
 	}
 
 	return 0

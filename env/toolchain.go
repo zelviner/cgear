@@ -10,6 +10,7 @@ import (
 
 	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/logger"
+	ui "github.com/ZEL-30/zel/ui/select"
 )
 
 type Compiler struct {
@@ -24,47 +25,25 @@ var compilerTypes = map[string]string{
 	"Mingw":    "g++.exe",
 }
 
-func SetToolchain() int {
-
-	logger.Log.Info("Finding Toolchain...")
-	Toolchains, err := findToolchains()
+func SetToolchain() {
+	logger.Log.Info("Finding toolchains...")
+	toolchains, err := findToolchains()
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
 
-	var (
-		ToolchainIndex int               // 选择的 Toolchain 索引
-		exitIndex      = len(Toolchains) // 退出选项的索引
-	)
-
-	logger.Log.Infof("Found %d Toolchains, please select one toolchain to use:", exitIndex)
-
-	// 输出所有 Toolchain
-	for i, Toolchain := range Toolchains {
-		fmt.Printf("\t[%d] %s\n", i+1, Toolchain.Name)
-	}
-	fmt.Printf("\t[%d] %s\n", exitIndex+1, "Exit")
-
-	// 选择 Toolchain
-	_, err = fmt.Scanln(&ToolchainIndex)
-	ToolchainIndex--
+	selected, cancelled, err := ui.ListOption("Please select a toolchain: ", toolchains, func(t *config.Toolchain) string { return t.Name })
 	if err != nil {
-		logger.Log.Error(err.Error())
+		logger.Log.Errorf("Failed to select a toolchain: %v", err)
+		return
 	}
-	if ToolchainIndex < 0 || ToolchainIndex > exitIndex {
-		logger.Log.Error("Invalid Toolchain index")
-	}
-
-	if ToolchainIndex == exitIndex {
-		logger.Log.Infof("Exit")
-		os.Exit(0)
+	if cancelled {
+		logger.Log.Info("Cancelled selecting a toolchain.")
+		return
 	}
 
-	config.Conf.Toolchain = Toolchains[ToolchainIndex]
-	config.SaveConfig()
-	logger.Log.Successf("Successfully set Toolchain: %s", config.Conf.Toolchain.Name)
-
-	return 0
+	config.Conf.Toolchain = selected
+	logger.Log.Successf("Toolchain set to: %s", selected.Name)
 }
 
 func findToolchains() (Toolchains []*config.Toolchain, err error) {

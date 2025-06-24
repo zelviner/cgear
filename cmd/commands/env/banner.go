@@ -11,12 +11,13 @@ import (
 )
 
 type EnvInfo struct {
-	ZelVersion string
-	ZelHome    string
-	Toolchain  string
-	Platform   string
-	Generator  string
-	BuildType  string
+	ZelVersion  string
+	ZelHome     string
+	Toolchain   string
+	Generator   string
+	Platform    string
+	BuildType   string
+	ProjectType string
 }
 
 // InitBanner 加载横幅并打印到输出
@@ -42,10 +43,11 @@ func show(out io.Writer, content string) {
 	}
 
 	envInfo := EnvInfo{
-		ZelVersion: config.Version,
-		BuildType:  config.Conf.BuildType,
-		Platform:   config.Conf.Platform,
-		Generator:  config.Conf.Generator,
+		ZelVersion:  config.Version,
+		Generator:   config.Conf.Generator,
+		Platform:    config.Conf.Platform,
+		BuildType:   config.Conf.BuildType,
+		ProjectType: config.Conf.ProjectType,
 	}
 
 	if config.Conf.Toolchain == nil {

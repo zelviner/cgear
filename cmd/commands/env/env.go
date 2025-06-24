@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"github.com/ZEL-30/zel/cmd/commands"
+	"github.com/ZEL-30/zel/config"
 	"github.com/ZEL-30/zel/env"
 	"github.com/ZEL-30/zel/logger"
+	"github.com/ZEL-30/zel/utils"
 )
 
 const envInfoTemplate string = `%s%s _____     _ 
@@ -15,12 +17,13 @@ const envInfoTemplate string = `%s%s _____     _
  / //\  __/ |__
 /____/\___|___/  v{{ .ZelVersion }}%s
 %s%s
-├── ZelHome   : {{ .ZelHome }}
-├── Toolchain : {{ .Toolchain }}
-├── Platform  : {{ .Platform }}
-├── Generator : {{ .Generator }}
-├── BuildType : {{ .BuildType }}
-└── Date      : {{ Now "Monday, 2 Jan 2006" }}%s
+├── ZelHome      : {{ .ZelHome }}
+├── Toolchain    : {{ .Toolchain }}
+├── Platform     : {{ .Platform }}
+├── Generator    : {{ .Generator }}
+├── BuildType    : {{ .BuildType }}
+├── ProjectType  : {{ .ProjectType }}
+└── Date         : {{ Now "Monday, 2 Jan 2006" }}%s
 `
 
 var CmdEnv = &commands.Command{
@@ -44,12 +47,23 @@ func init() {
 
 func SetEnv(cmd *commands.Command, args []string) int {
 	stdout := cmd.Out()
+	curryPath := utils.GetZelWorkPath()
+	if !utils.IsZelProject(curryPath) {
+		logger.Log.Fatal("Not a Zel project")
+	}
 
 	if len(args) != 0 {
 		gcmd := args[0]
 		switch gcmd {
+
 		case "Toolchain":
 			env.SetToolchain()
+
+		case "Generator":
+			env.SetGenerator()
+
+		case "Platform":
+			env.SetPlatform()
 
 		case "BuildType":
 			env.SetBuildType()
@@ -65,5 +79,6 @@ func SetEnv(cmd *commands.Command, args []string) int {
 		InitBanner(stdout, bytes.NewBufferString(coloredBanner))
 	}
 
+	config.SaveConfig(config.Conf.ProjectPath)
 	return 0
 }
