@@ -137,7 +137,7 @@ func compileInstall(showInfo bool) error {
 		NoWarnUnusedCli:       true,
 		BuildType:             buildType,
 		ExportCompileCommands: true,
-		Kit:                   config.Conf.Kit,
+		Toolchain:             config.Conf.Toolchain,
 		ProjectPath:           vendorPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",

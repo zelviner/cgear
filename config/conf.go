@@ -20,17 +20,16 @@ const (
 )
 
 type Config struct {
-	Version            int
-	WatchExts          []string `json:"watch_exts" yaml:"watch_exts"`
-	WatchExtsStatic    []string `json:"watch_exts_static" yaml:"watch_exts_static"`
-	Kit                *Kit     `json:"kit" yaml:"kit"`
-	BuildType          string   `json:"build_type" yaml:"build_type"`
-	Database           database
-	EnableReload       bool `json:"enable_reload" yaml:"enable_reload"`
-	EnableNotification bool `json:"enable_notification" yaml:"enable_notification"`
+	Version         int
+	Toolchain       *Toolchain `json:"toolchain" yaml:"toolchain"`   // 编译工具链
+	Platform        string     `json:"platform" yaml:"platform"`     // 构建平台
+	Generator       string     `json:"generator" yaml:"generator"`   // 生成器
+	BuildType       string     `json:"build_type" yaml:"build_type"` // 构建类型
+	WatchExts       []string   `json:"watch_exts" yaml:"watch_exts"`
+	WatchExtsStatic []string   `json:"watch_exts_static" yaml:"watch_exts_static"`
 }
 
-type Kit struct {
+type Toolchain struct {
 	Name      string   `json:"name" yaml:"name"`
 	Compiler  Compiler `json:"compilers" yaml:"compilers"`
 	IsTrusted bool     `json:"isTrusted" yaml:"isTrusted"`
@@ -50,12 +49,10 @@ type database struct {
 }
 
 var Conf = Config{
-	WatchExts:          []string{".h", ".hpp", ".cpp"},
-	WatchExtsStatic:    []string{".html", ".tpl", ".js", ".css"},
-	BuildType:          "Debug",
-	Kit:                nil,
-	Database:           database{Driver: "mysql"},
-	EnableNotification: true,
+	WatchExts:       []string{".h", ".hpp", ".cpp"},
+	WatchExtsStatic: []string{".html", ".tpl", ".js", ".css"},
+	BuildType:       "Debug",
+	Toolchain:       nil,
 }
 
 // LoadConfig 加载 Zel tool配置。

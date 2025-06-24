@@ -153,7 +153,7 @@ func build() {
 		NoWarnUnusedCli:       true,
 		BuildType:             "Release",
 		ExportCompileCommands: true,
-		Kit:                   config.Conf.Kit,
+		Toolchain:             config.Conf.Toolchain,
 		ProjectPath:           projectPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",

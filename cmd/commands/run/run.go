@@ -41,7 +41,7 @@ func RunApp(cmd *commands.Command, args []string) int {
 		NoWarnUnusedCli:       true,
 		BuildType:             config.Conf.BuildType,
 		ExportCompileCommands: true,
-		Kit:                   config.Conf.Kit,
+		Toolchain:             config.Conf.Toolchain,
 		ProjectPath:           projectPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",

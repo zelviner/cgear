@@ -13,14 +13,14 @@ import (
 
 // cmake 配置命令参数
 type ConfigArg struct {
-	NoWarnUnusedCli       bool        // 不警告在命令行声明但未使用的变量
-	BuildType             string      // 构建类型
-	ExportCompileCommands bool        // 导出编译命令
-	Kit                   *config.Kit // 编译器
-	ProjectPath           string      // 源代码路径
-	BuildPath             string      // 构建目录
-	Generator             string      // 生成器
-	CXXFlags              string      // C++ 编译参数
+	Toolchain             *config.Toolchain // 工具链
+	Generator             string            // 生成器
+	BuildType             string            // 构建类型
+	ExportCompileCommands bool              // 导出编译命令
+	ProjectPath           string            // 源代码路径
+	BuildPath             string            // 构建目录
+	CXXFlags              string            // C++ 编译参数
+	NoWarnUnusedCli       bool              // 不警告在命令行声明但未使用的变量
 }
 
 // cmake 构建命令参数
@@ -69,9 +69,9 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) 
 
 func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool) error {
 
-	if configArg.Kit == nil {
-		env.SetBuildKit()
-		configArg.Kit = config.Conf.Kit
+	if configArg.Toolchain == nil {
+		env.SetToolchain()
+		configArg.Toolchain = config.Conf.Toolchain
 	}
 
 	// 检查是否需要重新构建
@@ -123,12 +123,12 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE")
 	}
 
-	if c.Kit.Compiler.C != "" {
-		result = append(result, "-DCMAKE_C_COMPILER:FILEPATH="+c.Kit.Compiler.C)
+	if c.Toolchain.Compiler.C != "" {
+		result = append(result, "-DCMAKE_C_COMPILER:FILEPATH="+c.Toolchain.Compiler.C)
 	}
 
-	if c.Kit.Compiler.CXX != "" {
-		result = append(result, "-DCMAKE_CXX_COMPILER:FILEPATH="+c.Kit.Compiler.CXX)
+	if c.Toolchain.Compiler.CXX != "" {
+		result = append(result, "-DCMAKE_CXX_COMPILER:FILEPATH="+c.Toolchain.Compiler.CXX)
 	}
 
 	if c.ProjectPath != "" {

@@ -18,64 +18,56 @@ type Compiler struct {
 	CXXPath string
 }
 
-var (
-	compilerTypes = map[string]string{
-		"Clang":    "clang++.exe",
-		"Clang-cl": "clang-cpp.exe",
-		"Mingw":    "g++.exe",
-	}
-	buildTypes = []string{
-		"Debug",
-		"Release",
-		"RelWithDebInfo",
-		"MinSizeRel",
-	}
-)
+var compilerTypes = map[string]string{
+	"Clang":    "clang++.exe",
+	"Clang-cl": "clang-cpp.exe",
+	"Mingw":    "g++.exe",
+}
 
-func SetBuildKit() int {
+func SetToolchain() int {
 
-	logger.Log.Info("Finding kits...")
-	kits, err := findKits()
+	logger.Log.Info("Finding Toolchain...")
+	Toolchains, err := findToolchains()
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
 
 	var (
-		kitIndex  int         // 选择的 kit 索引
-		exitIndex = len(kits) // 退出选项的索引
+		ToolchainIndex int               // 选择的 Toolchain 索引
+		exitIndex      = len(Toolchains) // 退出选项的索引
 	)
 
-	logger.Log.Infof("Found %d Kits, please select one kit to use:", exitIndex)
+	logger.Log.Infof("Found %d Toolchains, please select one toolchain to use:", exitIndex)
 
-	// 输出所有 kit
-	for i, kit := range kits {
-		fmt.Printf("\t[%d] %s\n", i+1, kit.Name)
+	// 输出所有 Toolchain
+	for i, Toolchain := range Toolchains {
+		fmt.Printf("\t[%d] %s\n", i+1, Toolchain.Name)
 	}
 	fmt.Printf("\t[%d] %s\n", exitIndex+1, "Exit")
 
-	// 选择 kit
-	_, err = fmt.Scanln(&kitIndex)
-	kitIndex--
+	// 选择 Toolchain
+	_, err = fmt.Scanln(&ToolchainIndex)
+	ToolchainIndex--
 	if err != nil {
 		logger.Log.Error(err.Error())
 	}
-	if kitIndex < 0 || kitIndex > exitIndex {
-		logger.Log.Error("Invalid kit index")
+	if ToolchainIndex < 0 || ToolchainIndex > exitIndex {
+		logger.Log.Error("Invalid Toolchain index")
 	}
 
-	if kitIndex == exitIndex {
+	if ToolchainIndex == exitIndex {
 		logger.Log.Infof("Exit")
 		os.Exit(0)
 	}
 
-	config.Conf.Kit = kits[kitIndex]
+	config.Conf.Toolchain = Toolchains[ToolchainIndex]
 	config.SaveConfig()
-	logger.Log.Successf("Successfully set kit: %s", config.Conf.Kit.Name)
+	logger.Log.Successf("Successfully set Toolchain: %s", config.Conf.Toolchain.Name)
 
 	return 0
 }
 
-func findKits() (kits []*config.Kit, err error) {
+func findToolchains() (Toolchains []*config.Toolchain, err error) {
 
 	// 查看环境变量中的路径
 	pathEnv := os.Getenv("PATH")
@@ -100,21 +92,21 @@ func findKits() (kits []*config.Kit, err error) {
 					compiler = Compiler{key, filepath.Join(path, "gcc.exe"), compilerPath}
 				}
 
-				kit, err := getKit(compiler)
+				Toolchain, err := getToolchain(compiler)
 				if err != nil {
 					logger.Log.Error(err.Error())
 				}
 
-				kits = append(kits, kit)
+				Toolchains = append(Toolchains, Toolchain)
 			}
 		}
 	}
 
-	return kits, nil
+	return Toolchains, nil
 
 }
 
-func getKit(compiler Compiler) (*config.Kit, error) {
+func getToolchain(compiler Compiler) (*config.Toolchain, error) {
 	cmd := exec.Command(compiler.CXXPath, "-v")
 	cxxInfo, err := cmd.CombinedOutput()
 	if err != nil {
@@ -122,7 +114,7 @@ func getKit(compiler Compiler) (*config.Kit, error) {
 	}
 
 	var (
-		kit       config.Kit
+		Toolchain config.Toolchain
 		version   string
 		target    string
 		regExpStr string
@@ -144,10 +136,10 @@ func getKit(compiler Compiler) (*config.Kit, error) {
 				logger.Log.Error("No match found.")
 			}
 
-			kit.Name = fmt.Sprintf("Clang %s %s", version, target)
-			kit.Compiler.C = compiler.CPath
-			kit.Compiler.CXX = compiler.CXXPath
-			kit.IsTrusted = true
+			Toolchain.Name = fmt.Sprintf("Clang %s %s", version, target)
+			Toolchain.Compiler.C = compiler.CPath
+			Toolchain.Compiler.CXX = compiler.CXXPath
+			Toolchain.IsTrusted = true
 		}
 
 	case "Clang-cl":
@@ -164,10 +156,10 @@ func getKit(compiler Compiler) (*config.Kit, error) {
 				logger.Log.Error("No match found.")
 			}
 
-			kit.Name = fmt.Sprintf("Clang-cl %s %s", version, target)
-			kit.Compiler.C = compiler.CPath
-			kit.Compiler.CXX = compiler.CPath
-			kit.IsTrusted = true
+			Toolchain.Name = fmt.Sprintf("Clang-cl %s %s", version, target)
+			Toolchain.Compiler.C = compiler.CPath
+			Toolchain.Compiler.CXX = compiler.CPath
+			Toolchain.IsTrusted = true
 		}
 
 	case "Mingw":
@@ -184,35 +176,12 @@ func getKit(compiler Compiler) (*config.Kit, error) {
 				logger.Log.Error("No match found.")
 			}
 
-			kit.Name = fmt.Sprintf("GCC %s %s", version, target)
-			kit.Compiler.C = compiler.CPath
-			kit.Compiler.CXX = compiler.CXXPath
-			kit.IsTrusted = true
+			Toolchain.Name = fmt.Sprintf("GCC %s %s", version, target)
+			Toolchain.Compiler.C = compiler.CPath
+			Toolchain.Compiler.CXX = compiler.CXXPath
+			Toolchain.IsTrusted = true
 		}
 	}
 
-	return &kit, nil
-}
-
-func SetBuildType() {
-	logger.Log.Info("Please select a build type:")
-
-	for i, buildType := range buildTypes {
-		fmt.Printf("\t[%d] %s\n", i+1, buildType)
-	}
-
-	var (
-		modeIndex int
-	)
-
-	_, err := fmt.Scanln(&modeIndex)
-	modeIndex--
-	if err != nil {
-		logger.Log.Error(err.Error())
-	}
-
-	config.Conf.BuildType = buildTypes[modeIndex]
-	config.SaveConfig()
-	logger.Log.Successf("Successfully set build type: %s", config.Conf.BuildType)
-
+	return &Toolchain, nil
 }

@@ -16,7 +16,9 @@ const envInfoTemplate string = `%s%s _____     _
 /____/\___|___/  v{{ .ZelVersion }}%s
 %s%s
 ├── ZelHome   : {{ .ZelHome }}
-├── BuildKit  : {{ .BuildKit }}
+├── Toolchain : {{ .Toolchain }}
+├── Platform  : {{ .Platform }}
+├── Generator : {{ .Generator }}
 ├── BuildType : {{ .BuildType }}
 └── Date      : {{ Now "Monday, 2 Jan 2006" }}%s
 `
@@ -24,13 +26,13 @@ const envInfoTemplate string = `%s%s _____     _
 var CmdEnv = &commands.Command{
 	UsageLine: "env [command]",
 	Short:     "Setting up the environment for running C++ projects",
-	Long: `▶ {{"To set build kit for your C++ project:"|bold}}
+	Long: `▶ {{"To set Toolchain for your C++ project:"|bold}}
 
-     $ zel env kit
+     $ zel env Toolchain
 
-  ▶ {{"To set build type for your C++ project:"|bold}}
+  ▶ {{"To set BuildType for your C++ project:"|bold}}
 
-     $ zel env type
+     $ zel env BuildType
 
 `,
 	Run: SetEnv,
@@ -46,10 +48,10 @@ func SetEnv(cmd *commands.Command, args []string) int {
 	if len(args) != 0 {
 		gcmd := args[0]
 		switch gcmd {
-		case "kit":
-			env.SetBuildKit()
+		case "Toolchain":
+			env.SetToolchain()
 
-		case "type":
+		case "BuildType":
 			env.SetBuildType()
 
 		case "test":

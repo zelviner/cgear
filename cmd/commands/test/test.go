@@ -125,7 +125,7 @@ func runTest(testName string) {
 		NoWarnUnusedCli:       true,
 		BuildType:             config.Conf.BuildType,
 		ExportCompileCommands: true,
-		Kit:                   config.Conf.Kit,
+		Toolchain:             config.Conf.Toolchain,
 		ProjectPath:           appPath,
 		BuildPath:             buildPath,
 		Generator:             "Ninja",
