@@ -122,18 +122,19 @@ func runTest(testName string) {
 	}
 
 	configArg := cmake.ConfigArg{
-		NoWarnUnusedCli:       true,
-		BuildType:             config.Conf.BuildType,
-		ExportCompileCommands: true,
 		Toolchain:             config.Conf.Toolchain,
+		Platform:              config.Conf.Platform,
+		BuildType:             config.Conf.BuildType,
+		Generator:             config.Conf.Generator,
+		NoWarnUnusedCli:       true,
+		ExportCompileCommands: true,
 		ProjectPath:           appPath,
 		BuildPath:             buildPath,
-		Generator:             "Ninja",
+		CXXFlags:              "-D_MD",
 	}
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildType: config.Conf.BuildType,
 	}
 
 	// testName := cases.Title(language.English).String(testName)

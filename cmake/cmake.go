@@ -14,20 +14,21 @@ import (
 // cmake 配置命令参数
 type ConfigArg struct {
 	Toolchain             *config.Toolchain // 工具链
+	Platform              string            // 架构
 	Generator             string            // 生成器
 	BuildType             string            // 构建类型
-	ExportCompileCommands bool              // 导出编译命令
 	ProjectPath           string            // 源代码路径
 	BuildPath             string            // 构建目录
 	CXXFlags              string            // C++ 编译参数
 	NoWarnUnusedCli       bool              // 不警告在命令行声明但未使用的变量
+	ExportCompileCommands bool              // 导出编译命令
 }
 
 // cmake 构建命令参数
 type BuildArg struct {
 	BuildPath string // 构建路径
-	BuildType string // 构建类型
-	Target    string // 构建目标
+	// BuildType string // 构建类型
+	Target string // 构建目标
 }
 
 var (
@@ -112,15 +113,13 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool
 func (c *ConfigArg) toStringSlice() []string {
 	var result []string
 
-	if c.NoWarnUnusedCli {
-		result = append(result, "-DCMAKE_TOOLCHAIN_FILE="+c.ProjectPath+"/cmake/clang-32bit-toolchain.cmake")
-		result = append(result, "--no-warn-unused-cli")
-	}
-
-	result = append(result, "-DCMAKE_BUILD_TYPE:STRING="+c.BuildType)
-
-	if c.ExportCompileCommands {
-		result = append(result, "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE")
+	switch c.Platform {
+	case "x86":
+		toolchainFile := filepath.Join(c.ProjectPath, "cmake/clang-32bit-toolchain.cmake")
+		result = append(result, "-DCMAKE_TOOLCHAIN_FILE="+toolchainFile)
+	case "x64":
+		toolchainFile := filepath.Join(c.ProjectPath, "cmake/clang-64bit-toolchain.cmake")
+		result = append(result, "-DCMAKE_TOOLCHAIN_FILE="+toolchainFile)
 	}
 
 	if c.Toolchain.Compiler.C != "" {
@@ -129,6 +128,21 @@ func (c *ConfigArg) toStringSlice() []string {
 
 	if c.Toolchain.Compiler.CXX != "" {
 		result = append(result, "-DCMAKE_CXX_COMPILER:FILEPATH="+c.Toolchain.Compiler.CXX)
+	}
+
+	switch c.BuildType {
+	case "Debug":
+		result = append(result, "-DCMAKE_BUILD_TYPE=Debug")
+	case "Release":
+		result = append(result, "-DCMAKE_BUILD_TYPE=Release")
+	}
+
+	if c.NoWarnUnusedCli {
+		result = append(result, "--no-warn-unused-cli")
+	}
+
+	if c.ExportCompileCommands {
+		result = append(result, "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE")
 	}
 
 	if c.ProjectPath != "" {
@@ -152,8 +166,8 @@ func (b *BuildArg) toStringSlice() []string {
 	result = append(result, "--build")
 	result = append(result, b.BuildPath)
 
-	result = append(result, "--config")
-	result = append(result, b.BuildType)
+	// result = append(result, "--config")
+	// result = append(result, b.BuildType)
 
 	result = append(result, "--target")
 	if len(b.Target) != 0 {

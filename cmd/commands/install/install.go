@@ -132,19 +132,20 @@ func downloadPKG(ssh string, vendorPath string, showInfo bool) error {
 func compileInstall(showInfo bool) error {
 	// debug compile
 	buildPath := filepath.Join(vendorPath, "build")
-	buildType := "Debug"
 	configArg := cmake.ConfigArg{
-		NoWarnUnusedCli:       true,
-		BuildType:             buildType,
-		ExportCompileCommands: true,
 		Toolchain:             config.Conf.Toolchain,
+		Platform:              config.Conf.Platform,
+		BuildType:             "Debug",
+		Generator:             config.Conf.Generator,
+		NoWarnUnusedCli:       true,
+		ExportCompileCommands: true,
 		ProjectPath:           vendorPath,
 		BuildPath:             buildPath,
-		Generator:             "Ninja",
+		CXXFlags:              "-D_MD",
 	}
+
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildType: buildType,
 		Target:    "install",
 	}
 
@@ -154,10 +155,7 @@ func compileInstall(showInfo bool) error {
 	}
 
 	// release compile
-	buildType = "Release"
-	configArg.BuildType = buildType
-	buildArg.BuildType = buildType
-
+	configArg.BuildType = "Release"
 	err = cmake.Build(&configArg, &buildArg, true, showInfo)
 	if err != nil {
 		return err

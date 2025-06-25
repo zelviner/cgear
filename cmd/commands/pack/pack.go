@@ -150,19 +150,19 @@ func build() {
 	buildPath := filepath.Join(projectPath, "build")
 
 	configArg := cmake.ConfigArg{
-		NoWarnUnusedCli:       true,
-		BuildType:             "Release",
-		ExportCompileCommands: true,
 		Toolchain:             config.Conf.Toolchain,
+		Platform:              config.Conf.Platform,
+		BuildType:             "Release",
+		Generator:             config.Conf.Generator,
+		NoWarnUnusedCli:       true,
+		ExportCompileCommands: true,
 		ProjectPath:           projectPath,
 		BuildPath:             buildPath,
-		Generator:             "Ninja",
 		CXXFlags:              "-D_MD",
 	}
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildType: "Release",
 	}
 
 	err := cmake.Build(&configArg, &buildArg, true, false)

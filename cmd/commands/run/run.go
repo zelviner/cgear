@@ -37,19 +37,21 @@ func RunApp(cmd *commands.Command, args []string) int {
 	appName = filepath.Base(projectPath)
 
 	buildPath := filepath.Join(projectPath, "build")
+
 	configArg := cmake.ConfigArg{
-		NoWarnUnusedCli:       true,
-		BuildType:             config.Conf.BuildType,
-		ExportCompileCommands: true,
 		Toolchain:             config.Conf.Toolchain,
+		Platform:              config.Conf.Platform,
+		BuildType:             config.Conf.BuildType,
+		Generator:             config.Conf.Generator,
+		NoWarnUnusedCli:       true,
+		ExportCompileCommands: true,
 		ProjectPath:           projectPath,
 		BuildPath:             buildPath,
-		Generator:             "Ninja",
+		CXXFlags:              "-D_MD",
 	}
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildType: config.Conf.BuildType,
 	}
 
 	cmake.Run(&configArg, &buildArg, appName, rebuild)
