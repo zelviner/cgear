@@ -85,18 +85,6 @@ func Create(cmd *commands.Command, args []string) int {
 
 	config.Conf.ProjectPath = projectPath
 
-	// 选择工具链
-	env.SetToolchain()
-
-	// 选择编译架构
-	env.SetPlatform()
-
-	// 选择编译类型
-	env.SetBuildType()
-
-	// 选择生成器
-	env.SetGenerator()
-
 	// 选择项目类型
 	projectTypes := []string{"Application", "QT Application", "Static library", "Dynamic library", "Test cases"}
 	projectType, cancelled, err := ui.ListOption("Please select project type: ", projectTypes, func(p string) string { return p })
@@ -112,6 +100,23 @@ func Create(cmd *commands.Command, args []string) int {
 
 	config.Conf.ProjectType = projectType
 
+	if strings.Compare(projectType, "Test cases") == 0 {
+		createTestCase()
+		return 0
+	}
+
+	// 选择工具链
+	env.SetToolchain()
+
+	// 选择编译架构
+	env.SetPlatform()
+
+	// 选择编译类型
+	env.SetBuildType()
+
+	// 选择生成器
+	env.SetGenerator()
+
 	switch projectType {
 	case "Application":
 		createApp()
@@ -124,9 +129,6 @@ func Create(cmd *commands.Command, args []string) int {
 
 	case "Dynamic library":
 		createLib("dynamic library")
-
-	case "Test cases":
-		createTestCase()
 
 	default:
 		createApp()
@@ -153,6 +155,8 @@ func createApp() {
 	os.MkdirAll(filepath.Join(projectPath, "src", "utils"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "test"), 0755)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake")+string(filepath.Separator), "\x1b[0m")
+	os.MkdirAll(filepath.Join(projectPath, "cmake"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vecode")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, ".vscode"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
@@ -179,6 +183,10 @@ func createApp() {
 	utils.WriteToFile(filepath.Join(projectPath, "src/utils", "utils.cpp"), strings.Replace(appUtilsCPP, "{{ .ProjectName }} ", "utils", -1))
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "test", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "test", "CMakeLists.txt"), appTestCMakeLists)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", "clang-32bit-toolchain.cmake"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-32bit-toolchain.cmake"), toolchainFile32Bit)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), toolchainFile64Bit)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vsocde", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, ".vscode", "launch.json"), launch)
 
@@ -209,6 +217,8 @@ func createQTApp() {
 	os.MkdirAll(filepath.Join(projectPath, "res", "rc"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "res", "ui")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "res", "ui"), 0755)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake")+string(filepath.Separator), "\x1b[0m")
+	os.MkdirAll(filepath.Join(projectPath, "cmake"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "docs"), 0755)
 
@@ -249,6 +259,10 @@ func createQTApp() {
 	utils.WriteToFile(filepath.Join(projectPath, "res/ui", "main_window.ui"), qtMainWindowUI)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "res/ui", "template.ui"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "res/ui", "template.ui"), qtTemplateUI)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", "clang-32bit-toolchain.cmake"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-32bit-toolchain.cmake"), toolchainFile32Bit)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), toolchainFile64Bit)
 
 	logger.Log.Success("New qt application successfully created!")
 }
@@ -302,6 +316,10 @@ func createLib(libType string) {
 	utils.WriteToFile(filepath.Join(projectPath, "test", "CMakeLists.txt"), testCMakeLists)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", projectName+"Config.cmake.in"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "cmake", projectName+"Config.cmake.in"), strings.Replace(configCMakeIn, "{{ .ProjectName }}", filepath.Base(projectName), -1))
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", "clang-32bit-toolchain.cmake"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-32bit-toolchain.cmake"), toolchainFile32Bit)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), toolchainFile64Bit)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vsocde", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, ".vscode", "launch.json"), launch)
 
