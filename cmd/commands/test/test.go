@@ -44,7 +44,7 @@ func RunTest(cmd *commands.Command, args []string) int {
 
 	appPath := utils.GetZelWorkPath()
 	buildPath = filepath.Join(appPath, "build")
-	testPath = filepath.Join(appPath, "bin", "test")
+	testPath = filepath.Join(appPath, "bin", config.Conf.BuildType, "test")
 
 	if len(args) == 0 {
 		showTest()
@@ -71,12 +71,6 @@ func showTest() {
 		}
 		if index := strings.Index(path, "-test.exe"); index != -1 {
 			cmd := exec.Command(path, "--gtest_list_tests")
-			// cmd.Stdout = os.Stdout
-			// cmd.Stderr = os.Stderr
-			// err := cmd.Run()
-			// if err != nil {
-			// 	return err
-			// }
 			bytes, err := cmd.Output()
 			if err != nil {
 				logger.Log.Fatal(err.Error())

@@ -1,11 +1,13 @@
 package env
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/ZEL-30/zel/config"
@@ -23,6 +25,7 @@ var compilerTypes = map[string]string{
 	"Clang":    "clang++.exe",
 	"Clang-cl": "clang-cpp.exe",
 	"Mingw":    "g++.exe",
+	"MSVC":     "cl.exe",
 }
 
 func SetToolchain() {
@@ -81,6 +84,17 @@ func findToolchains() (Toolchains []*config.Toolchain, err error) {
 		}
 	}
 
+	// 查找 MSVC 编译器
+	toolchains, err := findMSVCCompiler()
+	if err != nil {
+		logger.Log.Error(err.Error())
+		return nil, err
+	}
+
+	for _, toolchain := range toolchains {
+		Toolchains = append(Toolchains, toolchain)
+	}
+
 	return Toolchains, nil
 
 }
@@ -89,6 +103,7 @@ func getToolchain(compiler Compiler) (*config.Toolchain, error) {
 	cmd := exec.Command(compiler.CXXPath, "-v")
 	cxxInfo, err := cmd.CombinedOutput()
 	if err != nil {
+		logger.Log.Errorf("Failed to run %s: %v", compiler.CXXPath, err)
 		return nil, err
 	}
 
@@ -163,4 +178,64 @@ func getToolchain(compiler Compiler) (*config.Toolchain, error) {
 	}
 
 	return &Toolchain, nil
+}
+
+func findMSVCCompiler() (toolchains []*config.Toolchain, err error) {
+	// 1. 执行 vswhere 获取 VS 安装路径
+	vswhere := filepath.Join(os.Getenv("ProgramFiles(x86)"), "Microsoft Visual Studio", "Installer", "vswhere.exe")
+	cmd := exec.Command(vswhere,
+		"-latest",
+		"-products", "*",
+		"-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+		"-property", "installationPath")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("vswhere 运行失败: %w", err)
+	}
+	vsPath := strings.TrimSpace(out.String())
+
+	// 2. 构造 MSVC 根路径
+	msvcRoot := filepath.Join(vsPath, "VC", "Tools", "MSVC")
+
+	// 3. 读取所有子目录，选最新版本
+	entries, err := os.ReadDir(msvcRoot)
+	if err != nil {
+		logger.Log.Infof("msvcRoot: %s", msvcRoot)
+		return nil, fmt.Errorf("读取 MSVC 目录失败: %w", err)
+	}
+
+	var versions []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			versions = append(versions, entry.Name())
+		}
+	}
+	if len(versions) == 0 {
+		return nil, fmt.Errorf("未找到任何 MSVC 版本")
+	}
+	sort.Strings(versions) // 从小到大排序
+	latest := versions[len(versions)-1]
+
+	tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release - amd64", filepath.Join(msvcRoot, latest, "bin", "Hostx64", "x64", "cl.exe"))
+	tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release - amd64_86", filepath.Join(msvcRoot, latest, "bin", "Hostx64", "x86", "cl.exe"))
+	tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release - x86", filepath.Join(msvcRoot, latest, "bin", "Hostx86", "x86", "cl.exe"))
+	tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release - x86_64", filepath.Join(msvcRoot, latest, "bin", "Hostx86", "x64", "cl.exe"))
+
+	return toolchains, nil
+}
+
+func tryAddToolchain(toolchains *[]*config.Toolchain, name, clPath string) {
+	if _, err := os.Stat(clPath); err == nil {
+		*toolchains = append(*toolchains, &config.Toolchain{
+			Name: name,
+			Compiler: config.Compiler{
+				C:   clPath,
+				CXX: clPath,
+			},
+		})
+	} else {
+		logger.Log.Warnf("跳过: %s 不存在", clPath)
+	}
 }
