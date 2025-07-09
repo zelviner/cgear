@@ -47,6 +47,30 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) 
 		return err
 	}
 
+	// 设置临时环境变量
+	var dllPath string
+	zelHome := utils.GetZelHomePath()
+	switch config.Conf.Platform {
+	case "x86":
+		dllPath = filepath.Join(zelHome, "installed", "x86-windows")
+	case "x64":
+		dllPath = filepath.Join(zelHome, "installed", "x64-windows")
+	}
+
+	switch config.Conf.BuildType {
+	case "Debug":
+		dllPath = filepath.Join(dllPath, "debug", "bin")
+	case "Release":
+		dllPath = filepath.Join(dllPath, "bin")
+	}
+
+	restore, err := utils.SetEnvTemp("PATH", dllPath)
+	if err != nil {
+		logger.Log.Errorf("Failed to set PATH environment variable: %v", err)
+		return err
+	}
+	defer restore() // 确保在函数结束时恢复原始 PATH
+
 	// 运行应用程序
 	if len(target) == 0 {
 		target = appName + ".exe"

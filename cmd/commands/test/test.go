@@ -44,7 +44,7 @@ func RunTest(cmd *commands.Command, args []string) int {
 
 	appPath := utils.GetZelWorkPath()
 	buildPath = filepath.Join(appPath, "build")
-	testPath = filepath.Join(appPath, "bin", config.Conf.BuildType, "test")
+	testPath = filepath.Join(appPath, "bin", "test")
 
 	if len(args) == 0 {
 		showTest()
@@ -65,6 +65,16 @@ func showTest() {
 
 	version.ShowShortVersionBanner()
 	fmt.Println()
+
+	// 设置临时环境变量
+	dllPath := getDllPath()
+	restore, err := utils.SetEnvTemp("PATH", dllPath)
+	if err != nil {
+		logger.Log.Errorf("Failed to set PATH environment variable: %v", err)
+		return
+	}
+	defer restore() // 确保在函数结束时恢复原始 PATH
+
 	filepath.Walk(testPath, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -137,6 +147,17 @@ func runTest(testName string) {
 		logger.Log.Fatal(err.Error())
 	}
 
+	// 设置临时环境变量
+	dllPath := getDllPath()
+	logger.Log.Infof("Setting PATH environment variable to: %s", dllPath)
+
+	restore, err := utils.SetEnvTemp("PATH", dllPath)
+	if err != nil {
+		logger.Log.Errorf("Failed to set PATH environment variable: %v", err)
+		return
+	}
+	defer restore() // 确保在函数结束时恢复原始 PATH
+
 	testExe = filepath.Join(testPath, testProgram)
 
 	arg := fmt.Sprintf("--gtest_filter=%s", testName)
@@ -166,4 +187,23 @@ func getTestProgramName(testName string) string {
 		}
 	}
 	return string(result)
+}
+
+func getDllPath() string {
+	var dllPath string
+	zelHome := utils.GetZelHomePath()
+	switch config.Conf.Platform {
+	case "x86":
+		dllPath = filepath.Join(zelHome, "installed", "x86-windows")
+	case "x64":
+		dllPath = filepath.Join(zelHome, "installed", "x64-windows")
+	}
+
+	switch config.Conf.BuildType {
+	case "Debug":
+		dllPath = filepath.Join(dllPath, "debug", "bin")
+	case "Release":
+		dllPath = filepath.Join(dllPath, "bin")
+	}
+	return dllPath
 }

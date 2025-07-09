@@ -274,3 +274,21 @@ func ReadLine() string {
 	input, _ := reader.ReadString('\n')
 	return strings.TrimSpace(input)
 }
+
+// SetEnvTemp 设置一个临时环境变量，并返回一个 restore 函数用于恢复原始值
+func SetEnvTemp(key, value string) (func(), error) {
+	original, existed := os.LookupEnv(key)
+	err := os.Setenv(key, value)
+	if err != nil {
+		return nil, err
+	}
+
+	// 返回一个函数，用于恢复原始环境变量状态
+	return func() {
+		if existed {
+			_ = os.Setenv(key, original)
+		} else {
+			_ = os.Unsetenv(key)
+		}
+	}, nil
+}
