@@ -79,13 +79,13 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) 
 	}
 
 	runPath := filepath.Join(appPath, "bin", target)
-
 	cmd := exec.Command(runPath)
 	cmd.Dir = filepath.Join(appPath, "bin")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
+		logger.Log.Errorf("Failed to run application: %v", err)
 		return err
 	}
 

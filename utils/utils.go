@@ -278,7 +278,15 @@ func ReadLine() string {
 // SetEnvTemp 设置一个临时环境变量，并返回一个 restore 函数用于恢复原始值
 func SetEnvTemp(key, value string) (func(), error) {
 	original, existed := os.LookupEnv(key)
-	err := os.Setenv(key, value)
+
+	var newValue string
+	if existed && len(original) > 0 {
+		newValue = value + string(os.PathListSeparator) + original
+	} else {
+		newValue = value
+	}
+
+	err := os.Setenv(key, newValue)
 	if err != nil {
 		return nil, err
 	}
