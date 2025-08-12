@@ -262,31 +262,6 @@ find_package(GTest REQUIRED)
 
 # [3] 添加测试目标 --------------------------------------------------
 function(add_integration_test name)
-  set(TEST_NAME "${name}-test")
-  file(GLOB_RECURSE files ${name}/*.cpp)
-  add_executable(${TEST_NAME} ${files})
-  target_link_libraries(${TEST_NAME}
-    PRIVATE 
-      GTest::gtest_main
-       ${ARGN}
-  )
-  add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-endfunction()
-
-# [4] 添加具体测试 --------------------------------------------------
-`
-
-var appTestCMakeLists = `# 设置测试程序的输出目录
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/test)
-
-# 查找 GTest 库
-find_package(GTest REQUIRED)
-
-# 启用测试
-enable_testing()
-
-# 定义添加测试执行文件的函数
-function(add_test_executable name)
     file(GLOB_RECURSE files ${name}/*.cpp)
     add_executable(${name}-test ${files})
     target_include_directories(${name}-test 
@@ -297,9 +272,9 @@ function(add_test_executable name)
             GTest::gtest_main
             ${ARGN}
     )
-endfunction(add_test_executable name)
+endfunction(add_integration_test name)
 
-# 添加测试
+# [4] 添加具体测试 --------------------------------------------------
 `
 
 var projectHeader = `#pragma once

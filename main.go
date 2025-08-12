@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
@@ -24,8 +23,6 @@ func main() {
 		os.Exit(2)
 		return
 	}
-
-	fmt.Print("haha")
 
 	if args[0] == "help" {
 		cmd.Help(args[1:])
