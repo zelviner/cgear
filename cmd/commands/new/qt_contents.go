@@ -17,8 +17,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # [4] 查找 Qt5 组件 ---------------------------------------------------
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-find_package(zel CONFIG REQUIRED)
+# find_package(fmt CONFIG REQUIRED)
+
 
 # [5] UI 搜索路径 -----------------------------------------------------
 list(APPEND CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR}/res/ui)
@@ -50,8 +50,7 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
-    fmt::fmt
-    zel::zel
+    # fmt::fmt # fmt库，用于格式化输出
 )`
 
 var qtMainWindowUI = `<?xml version="1.0" encoding="UTF-8"?>
@@ -139,14 +138,14 @@ int main(int argc, char *argv[]) {
 }
 `
 
-var qtImagesRC = `<!DOCTYPE RCC><RCC version="1.0">
+var qtImageRC = `<!DOCTYPE RCC><RCC version="1.0">
  <qresource>
-     <!-- <file>../images/logo.ico</file> -->
+     <!-- <file>../image/logo.ico</file> -->
  </qresource>
  </RCC>
 `
 
-var qtLogoRc = `// IDI_ICON1 ICON "../images/logo.ico"`
+var qtLogoRc = `// IDI_ICON1 ICON "../image/logo.ico"`
 
 var qtMainWindowHeader = `#pragma once
 #include "ui_main_window.h"
@@ -192,15 +191,16 @@ MainWindow::~MainWindow() { delete ui_; }
 void MainWindow::initWindow() {
 
     // 设置窗口标题
-    setWindowTitle("Template");
+    setWindowTitle("ZEL Template");
 }
 
 void MainWindow::initUI() {
     // 插入图片
-    QPixmap pixmap(":/image/data.png");
-    ui_->push_btn->setIcon(pixmap);
-    ui_->push_btn->setIconSize(pixmap.size());
-    ui_->push_btn->setFixedSize(pixmap.size());
+    // QPixmap pixmap(":/image/data.png");
+    // ui_->push_btn->setIcon(pixmap);
+    // ui_->push_btn->setIconSize(pixmap.size());
+    // ui_->push_btn->setFixedSize(pixmap.size());
+    ui_->push_btn->setText("欢迎使用 ZEL C++ 脚手架");
 }
 
 void MainWindow::initSignalSlot() {}

@@ -13,16 +13,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "*.cpp")
 
 # [4] 查找依赖 ------------------------------------------------------
-find_package(fmt CONFIG REQUIRED)
-find_package(zel CONFIG REQUIRED)
+# find_package(fmt CONFIG REQUIRED)
 
 # [5] 添加可执行文件 -------------------------------------------------
 add_executable(${APP_NAME} ${SOURCES})
 
 # [6] 链接依赖库 ----------------------------------------------------
 target_link_libraries(${APP_NAME} PUBLIC 
-  fmt::fmt 
-  zel::zel
+    # fmt::fmt  # fmt库，用于格式化输出
 )
 
 # [7] 添加宏定义 ----------------------------------------------------

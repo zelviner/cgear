@@ -9,8 +9,8 @@ import (
 func SetGenerator() {
 
 	generators := []string{
-		"Visual Studio 17 2022",
 		"Ninja",
+		"Visual Studio 17 2022",
 	}
 
 	logger.Log.Info("")
