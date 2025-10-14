@@ -68,6 +68,7 @@ func showTest() {
 
 	// 设置临时环境变量
 	dllPath := getDllPath()
+	logger.Log.Infof("Setting PATH environment variable to: %s", dllPath)
 	restore, err := utils.SetEnvTemp("PATH", dllPath)
 	if err != nil {
 		logger.Log.Errorf("Failed to set PATH environment variable: %v", err)
@@ -79,7 +80,7 @@ func showTest() {
 		if err != nil {
 			return err
 		}
-		if index := strings.Index(path, "-test.exe"); index != -1 {
+		if index := strings.Index(path, "_test.exe"); index != -1 {
 			cmd := exec.Command(path, "--gtest_list_tests")
 			bytes, err := cmd.Output()
 			if err != nil {
@@ -119,10 +120,10 @@ func runTest(testName string) {
 
 	if index := strings.Index(testName, "."); index == -1 {
 
-		testProgram = getTestProgramName(testName) + "-test.exe"
+		testProgram = getTestProgramName(testName) + "_test.exe"
 		testName += "*"
 	} else {
-		testProgram = getTestProgramName(testName[:index]) + "-test.exe"
+		testProgram = getTestProgramName(testName[:index]) + "_test.exe"
 	}
 
 	configArg := cmake.ConfigArg{
@@ -141,12 +142,6 @@ func runTest(testName string) {
 		BuildPath: buildPath,
 	}
 
-	// testName := cases.Title(language.English).String(testName)
-	err := cmake.Build(&configArg, &buildArg, rebuild, false)
-	if err != nil {
-		logger.Log.Fatal(err.Error())
-	}
-
 	// 设置临时环境变量
 	dllPath := getDllPath()
 	logger.Log.Infof("Setting PATH environment variable to: %s", dllPath)
@@ -157,6 +152,12 @@ func runTest(testName string) {
 		return
 	}
 	defer restore() // 确保在函数结束时恢复原始 PATH
+
+	// testName := cases.Title(language.English).String(testName)
+	err = cmake.Build(&configArg, &buildArg, rebuild, false)
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
 
 	testExe = filepath.Join(testPath, testProgram)
 

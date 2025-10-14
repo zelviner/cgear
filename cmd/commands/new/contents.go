@@ -263,11 +263,11 @@ find_package(GTest REQUIRED)
 # [3] 添加测试目标 --------------------------------------------------
 function(add_integration_test name)
     file(GLOB_RECURSE files ${name}/*.cpp)
-    add_executable(${name}-test ${files})
-    target_include_directories(${name}-test 
+    add_executable(${name}_test ${files})
+    target_include_directories(${name}_test 
         PUBLIC
     )
-    target_link_libraries(${name}-test
+    target_link_libraries(${name}_test
         PUBLIC
             GTest::gtest_main
             ${ARGN}
