@@ -181,7 +181,7 @@ func getTestProgramName(testName string) string {
 				result = append(result, byte(letter+32))
 				continue
 			}
-			result = append(result, '-')
+			result = append(result, '_')
 			result = append(result, byte(letter+32))
 		} else {
 			result = append(result, byte(letter))
