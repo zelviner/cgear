@@ -35,7 +35,7 @@ var appMainCPP = `#include <iostream>
 
 int main(int argc, char *argv[]) {
 
-    std::cout << "Welcome to zel!" << std::endl;
+    std::cout << "Welcome to cgear!" << std::endl;
 
     return 0;
 }

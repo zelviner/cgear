@@ -72,6 +72,11 @@ func (m model[T]) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			if i, ok := m.list.SelectedItem().(genericItem[any]); ok {
+				if i.Label == "退出" {
+					m.quitting = true
+					return m, tea.Quit
+				}
+
 				if data, ok := i.Data.(genericItem[T]); ok {
 					m.choice = &data
 				}

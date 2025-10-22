@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/logger"
-	ui "github.com/ZEL-30/zel/ui/select"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/logger"
+	ui "github.com/zelviner/cgear/ui/select"
 )
 
 type Compiler struct {

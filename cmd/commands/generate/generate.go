@@ -8,11 +8,11 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/version"
-	"github.com/ZEL-30/zel/generate"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/cmd/commands/version"
+	"github.com/zelviner/cgear/generate"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/utils"
 )
 
 var CmdGenerate = &commands.Command{
@@ -65,7 +65,7 @@ func init() {
 }
 
 func GenerateCode(cmd *commands.Command, args []string) int {
-	currPath := utils.GetZelWorkPath()
+	currPath := utils.GetCgearWorkPath()
 	if len(args) < 1 {
 		logger.Log.Fatal("Command is missing")
 	}
@@ -88,8 +88,8 @@ func GenerateCode(cmd *commands.Command, args []string) int {
 }
 
 func include(cmd *commands.Command, args []string, currPath string) {
-	if !utils.IsZelProject(currPath) {
-		logger.Log.Fatal("not zel project")
+	if !utils.IsCgearProject(currPath) {
+		logger.Log.Fatal("not cgear project")
 	}
 
 	output := cmd.Out()
@@ -100,8 +100,8 @@ func include(cmd *commands.Command, args []string, currPath string) {
 }
 
 func docs(cmd *commands.Command, args []string, currPath string) {
-	if !utils.IsZelProject(currPath) {
-		logger.Log.Fatal("not zel project")
+	if !utils.IsCgearProject(currPath) {
+		logger.Log.Fatal("not cgear project")
 	}
 
 	generate.SrcToDocx("source.docx", currPath)

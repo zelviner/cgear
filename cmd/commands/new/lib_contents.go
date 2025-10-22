@@ -24,7 +24,7 @@ find_package(fmt CONFIG REQUIRED)
 
 {{ .LibInfo }}
 
-# [5.1] 设置输出 DLL 名（根据配置不同使用 zeld.dll 或 zel.dll）----------
+# [5.1] 设置输出 DLL 名（根据配置不同使用 cgeard.dll 或 cgear.dll）----------
 set_target_properties(${LIB_NAME} PROPERTIES
     OUTPUT_NAME_DEBUG "${LIB_NAME}d"
     OUTPUT_NAME_RELEASE "${LIB_NAME}"

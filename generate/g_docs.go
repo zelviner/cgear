@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/ErmaiSoft/GoOpenXml/word"
-	"github.com/ZEL-30/zel/logger"
+	"github.com/zelviner/cgear/logger"
 )
 
 type FileInfo struct {

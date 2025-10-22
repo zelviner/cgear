@@ -123,7 +123,7 @@ var qtTemplateUI = `<?xml version="1.0" encoding="UTF-8"?>
 
 var qtMainCPP = `#include "app/main_window.h"
 
-#include <QApplication>
+#include <qapplication>
 #pragma comment(lib, "user32.lib")
 
 int main(int argc, char *argv[]) {
@@ -149,7 +149,7 @@ var qtLogoRc = `// IDI_ICON1 ICON "../image/logo.ico"`
 
 var qtMainWindowHeader = `#pragma once
 #include "ui_main_window.h"
-#include <QMainWindow>
+#include <qmainwindow>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -159,14 +159,14 @@ class MainWindow : public QMainWindow {
     ~MainWindow();
 
   private:
-    // 初始化窗口
-    void initWindow();
+    /// @brief 初始化窗口
+    void init_window();
 
-    // 初始化UI
-    void initUI();
+    /// @brief 初始化 UI
+    void init_ui();
 
     /// @brief 初始化信号槽
-    void initSignalSlot();
+    void init_signals_slots();
 
   private:
     Ui_MainWindow *ui_;
@@ -179,19 +179,18 @@ MainWindow::MainWindow(QMainWindow *parent)
     , ui_(new Ui_MainWindow) {
     ui_->setupUi(this);
 
-    initWindow();
+    init_window();
 
-    initUI();
+    init_ui();
 
-    initSignalSlot();
+    init_signals_slots();
 }
 
 MainWindow::~MainWindow() { delete ui_; }
 
 void MainWindow::initWindow() {
-
     // 设置窗口标题
-    setWindowTitle("ZEL Template");
+    setWindowTitle("Cgear Window");
 }
 
 void MainWindow::initUI() {
@@ -200,7 +199,7 @@ void MainWindow::initUI() {
     // ui_->push_btn->setIcon(pixmap);
     // ui_->push_btn->setIconSize(pixmap.size());
     // ui_->push_btn->setFixedSize(pixmap.size());
-    ui_->push_btn->setText("欢迎使用 ZEL C++ 脚手架");
+    ui_->push_btn->setText("欢迎使用 Cgear C++ 脚手架");
 }
 
 void MainWindow::initSignalSlot() {}

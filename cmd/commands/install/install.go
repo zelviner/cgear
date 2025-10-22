@@ -6,16 +6,16 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/ZEL-30/zel/cmake"
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/version"
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/logger/colors"
-	"github.com/ZEL-30/zel/utils"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/zelviner/cgear/cmake"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/cmd/commands/version"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/logger/colors"
+	"github.com/zelviner/cgear/utils"
 )
 
 // CmdInstall represents the install command
@@ -25,8 +25,8 @@ var CmdInstall = &commands.Command{
 	Long: `
 Install downloads and compiles C++ third-party libraries from GitHub.
 Usage:
-    zel install                     # Install in current directory
-    zel install author:repository   # Install specific repository
+    cgear install                     # Install in current directory
+    cgear install author:repository   # Install specific repository
 `,
 	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
 	Run:    install,
@@ -37,9 +37,9 @@ var (
 	vendorInfo     string
 	repositoryName string
 
-	zelHome      = utils.GetZelHomePath()
-	zelPkg       = utils.GetZelPkgPath()
-	zelInstalled = utils.GetZelInstalledPath()
+	cgearHome      = utils.GetCgearHomePath()
+	cgearPkg       = utils.GetCgearPkgPath()
+	cgearInstalled = utils.GetCgearInstalledPath()
 )
 
 func init() {
@@ -50,7 +50,7 @@ func install(cmd *commands.Command, args []string) int {
 
 	switch len(args) {
 	case 0:
-		vendorPath = utils.GetZelWorkPath()
+		vendorPath = utils.GetCgearWorkPath()
 		vendorInfo = filepath.Base(vendorPath)
 	case 1:
 		cmd.Flag.Parse(args[1:])
@@ -89,7 +89,7 @@ func getPKG(showInfo bool) {
 	repositoryName = re.FindStringSubmatch(vendorInfo)[2]
 
 	ssh := "git@github.com:" + Author + "/" + repositoryName
-	vendorPath = filepath.Join(zelPkg, repositoryName)
+	vendorPath = filepath.Join(cgearPkg, repositoryName)
 
 	if utils.IsExist(vendorPath) {
 		logger.Log.Errorf(colors.Bold("%s '%s' already exists"), vendorInfo, vendorPath)
@@ -271,7 +271,7 @@ func releaseInstall() {
 	archDir := selectArch()
 
 	// 拷贝 vendorInfo 下的 include 和 lib 目录到 releasePath 下
-	releasePath := filepath.Join(zelInstalled, archDir)
+	releasePath := filepath.Join(cgearInstalled, archDir)
 	utils.CopyDir(includePath, filepath.Join(releasePath, "include", repositoryName))
 	utils.CopyDir(libPath, filepath.Join(releasePath, "lib", repositoryName))
 

@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 )
 
-// Zel System Params ...
+// Cgear System Params ...
 var (
 	Usr, _     = user.Current()
-	ZelHome    = filepath.Join(Usr.HomeDir, "/.zel")
+	CgearHome  = filepath.Join(Usr.HomeDir, "/.cgear")
 	CurrentDir = GetCurrentDirectory()
 	GoPath     = os.Getenv("GOPATH")
 )

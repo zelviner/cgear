@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/ZEL-30/zel/cmd"
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/cmd"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/utils"
 )
 
 func main() {

@@ -10,17 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ZEL-30/zel/logger"
+	"github.com/zelviner/cgear/logger"
 )
-
-// // 检查文件是否存在
-// func FileIsExisted(filename string) bool {
-// 	existed := true
-// 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-// 		existed = false
-// 	}
-// 	return existed
-// }
 
 // 检查文件是否存在
 func IsExist(path string) bool {

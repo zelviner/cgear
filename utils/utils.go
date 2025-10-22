@@ -3,19 +3,15 @@ package utils
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
 
-	"github.com/ZEL-30/zel/internal/pkg/system"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/logger/colors"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/logger/colors"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -30,8 +26,8 @@ type Releases struct {
 	TagName     time.Time `json:"tag_name"`
 }
 
-// GetZelWorkPath 获取当前工作目录的路径
-func GetZelWorkPath() string {
+// GetCgearWorkPath 获取当前工作目录的路径
+func GetCgearWorkPath() string {
 	curPath, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -40,40 +36,40 @@ func GetZelWorkPath() string {
 	return curPath
 }
 
-// GetZelHomePath 获取 Zel 根目录的路径
-func GetZelHomePath() string {
-	return os.Getenv("ZEL_HOME")
+// GetCgearHomePath 获取 Cgear 根目录的路径
+func GetCgearHomePath() string {
+	return os.Getenv("CGEAR_HOME")
 }
 
-// GetZelVendorPath 获取 Zel 第三方库目录的路径
-func GetZelVendorPath() string {
-	zelVendor := filepath.Join(GetZelHomePath(), "vendor")
-	if _, err := os.Stat(zelVendor); os.IsNotExist(err) {
-		return filepath.Join(GetZelHomePath(), "vendor")
+// GetCgearVendorPath 获取 Cgear 第三方库目录的路径
+func GetCgrearVendorPath() string {
+	cgearVendor := filepath.Join(GetCgearHomePath(), "vendor")
+	if _, err := os.Stat(cgearVendor); os.IsNotExist(err) {
+		return filepath.Join(GetCgearHomePath(), "vendor")
 	}
-	return zelVendor
+	return cgearVendor
 }
 
-// GetZelPkgPath 获取 Zel 包目录的路径
-func GetZelPkgPath() string {
-	zelPkg := filepath.Join(GetZelHomePath(), "pkg")
-	if _, err := os.Stat(zelPkg); os.IsNotExist(err) {
-		return filepath.Join(GetZelHomePath(), "pkg")
+// GetCgearPkgPath 获取 cgear 包目录的路径
+func GetCgearPkgPath() string {
+	cgearPkg := filepath.Join(GetCgearHomePath(), "pkg")
+	if _, err := os.Stat(cgearPkg); os.IsNotExist(err) {
+		return filepath.Join(GetCgearHomePath(), "pkg")
 	}
-	return zelPkg
+	return cgearPkg
 }
 
-// GetZelInstalledPath 获取 Zel 第三方库目录的路径
-func GetZelInstalledPath() string {
-	zelInstalled := filepath.Join(GetZelHomePath(), "installed")
-	if _, err := os.Stat(zelInstalled); os.IsNotExist(err) {
-		return filepath.Join(GetZelHomePath(), "installed")
+// GetCgearInstalledPath 获取 Cgear 第三方库目录的路径
+func GetCgearInstalledPath() string {
+	cgearInstalled := filepath.Join(GetCgearHomePath(), "installed")
+	if _, err := os.Stat(cgearInstalled); os.IsNotExist(err) {
+		return filepath.Join(GetCgearHomePath(), "installed")
 	}
-	return zelInstalled
+	return cgearInstalled
 }
 
-// 检查当前路径是否为 Zel tool 生成的 C++ 项目
-func IsZelProject(thePath string) bool {
+// 检查当前路径是否为 Cgear tool 生成的 C++ 项目
+func IsCgearProject(thePath string) bool {
 	cmakeListsFiles := []string{
 		thePath + `\CMakeLists.txt`,
 		thePath + `\src\CMakeLists.txt`,
@@ -187,76 +183,76 @@ func PrintErrorAndExit(message string, errorTemplate string) {
 	os.Exit(2)
 }
 
-func ZelReleasesInfo() (repos []Releases) {
-	var url = "https://api.github.com/repos/beego/bee/releases"
-	resp, err := http.Get(url)
-	if err != nil {
-		logger.Log.Warnf("Get Zel releases from github error : %s", err)
-		return
-	}
+// func ZelReleasesInfo() (repos []Releases) {
+// 	var url = "https://api.github.com/repos/beego/bee/releases"
+// 	resp, err := http.Get(url)
+// 	if err != nil {
+// 		logger.Log.Warnf("Get Zel releases from github error : %s", err)
+// 		return
+// 	}
 
-	defer resp.Body.Close()
-	bodyContent, _ := io.ReadAll(resp.Body)
-	if err := json.Unmarshal(bodyContent, &repos); err != nil {
-		logger.Log.Warnf("Unmarshal releases body error: %s", err)
-		return
-	}
+// 	defer resp.Body.Close()
+// 	bodyContent, _ := io.ReadAll(resp.Body)
+// 	if err := json.Unmarshal(bodyContent, &repos); err != nil {
+// 		logger.Log.Warnf("Unmarshal releases body error: %s", err)
+// 		return
+// 	}
 
-	return
-}
+// 	return
+// }
 
-func UpdateLastPublishedTime() {
-	info := ZelReleasesInfo()
-	if len(info) == 0 {
-		logger.Log.Warn("Has no releases")
-		return
-	}
-	createdAt := info[0].PublishedAt.Format("2006-01-02")
-	zelHome := system.ZelHome
-	if !IsExist(zelHome) {
-		if err := os.MkdirAll(zelHome, 0755); err != nil {
-			logger.Log.Fatalf("Could not create the directory: %s", err)
-			return
-		}
-	}
+// func UpdateLastPublishedTime() {
+// 	info := ZelReleasesInfo()
+// 	if len(info) == 0 {
+// 		logger.Log.Warn("Has no releases")
+// 		return
+// 	}
+// 	createdAt := info[0].PublishedAt.Format("2006-01-02")
+// 	zelHome := system.ZelHome
+// 	if !IsExist(zelHome) {
+// 		if err := os.MkdirAll(zelHome, 0755); err != nil {
+// 			logger.Log.Fatalf("Could not create the directory: %s", err)
+// 			return
+// 		}
+// 	}
 
-	fp := zelHome + "/.lastPublishedAt"
-	w, err := os.OpenFile(fp, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
-	if err != nil {
-		logger.Log.Warnf("Open .lastPublishedAt file err: %s", err)
-		return
-	}
-	defer w.Close()
+// 	fp := zelHome + "/.lastPublishedAt"
+// 	w, err := os.OpenFile(fp, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+// 	if err != nil {
+// 		logger.Log.Warnf("Open .lastPublishedAt file err: %s", err)
+// 		return
+// 	}
+// 	defer w.Close()
 
-	if _, err := w.WriteString(createdAt); err != nil {
-		logger.Log.Warnf("Update .lastPublishedAt file err: %s", err)
-		return
-	}
+// 	if _, err := w.WriteString(createdAt); err != nil {
+// 		logger.Log.Warnf("Update .lastPublishedAt file err: %s", err)
+// 		return
+// 	}
 
-}
+// }
 
-func GetLastPublishedTime() string {
-	fp := system.ZelHome + "/.lastPublishedAt"
-	if !IsExist(fp) {
-		UpdateLastPublishedTime()
-	}
+// func GetLastPublishedTime() string {
+// 	fp := system.ZelHome + "/.lastPublishedAt"
+// 	if !IsExist(fp) {
+// 		UpdateLastPublishedTime()
+// 	}
 
-	w, err := os.OpenFile(fp, os.O_RDONLY, 0644)
-	if err != nil {
-		logger.Log.Warnf("Open .lastPublishedAt file err: %s", err)
-		return "unknown"
-	}
-	defer w.Close()
+// 	w, err := os.OpenFile(fp, os.O_RDONLY, 0644)
+// 	if err != nil {
+// 		logger.Log.Warnf("Open .lastPublishedAt file err: %s", err)
+// 		return "unknown"
+// 	}
+// 	defer w.Close()
 
-	t := make([]byte, 1024)
-	read, err := w.Read(t)
-	if err != nil {
-		logger.Log.Warnf("read .lastPulishedAt file err: %s", err)
-		return "unknown"
-	}
+// 	t := make([]byte, 1024)
+// 	read, err := w.Read(t)
+// 	if err != nil {
+// 		logger.Log.Warnf("read .lastPulishedAt file err: %s", err)
+// 		return "unknown"
+// 	}
 
-	return string(t[:read])
-}
+// 	return string(t[:read])
+// }
 
 func CapitalizeFirstLetter(word string) string {
 	var capFirstLetter string

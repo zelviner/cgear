@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/utils"
 )
 
 func TestFileTrim(t *testing.T) {

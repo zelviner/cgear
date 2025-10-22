@@ -1,5 +1,5 @@
 package generate
 
-import "github.com/ZEL-30/zel/utils"
+import "github.com/zelviner/cgear/utils"
 
 var Include utils.DocValue

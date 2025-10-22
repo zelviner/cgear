@@ -8,15 +8,14 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/utils"
 )
 
 const confVer = 0
 
 const (
-	Version       = "1.0.0"
-	GitRemotePath = "github.com/beego/v2"
+	Version = "2.0.0"
 )
 
 type Config struct {
@@ -50,10 +49,10 @@ var Conf = Config{
 	Toolchain:       nil,
 }
 
-// LoadConfig 加载 Zel tool配置。
-// 它在当前路径中查找Zelfile或zel.json，如果找不到，则返回默认配置
+// LoadConfig 加载 cgear tool配置。
+// 它在当前路径中查找cgear file 或 cgear.json，如果找不到，则返回默认配置
 func LaodConfig() {
-	currentPath := utils.GetZelWorkPath()
+	currentPath := utils.GetCgearWorkPath()
 
 	dir, err := os.Open(currentPath)
 	if err != nil {
@@ -68,7 +67,7 @@ func LaodConfig() {
 
 	for _, file := range files {
 		switch file.Name() {
-		case "zel.json":
+		case "cgear.json":
 			{
 				err = parseJSON(filepath.Join(currentPath, file.Name()), &Conf)
 				if err != nil {
@@ -76,7 +75,7 @@ func LaodConfig() {
 				}
 				break
 			}
-		case "Zelfile":
+		case "Cgearfile":
 			{
 				err = parseYAML(filepath.Join(currentPath, file.Name()), &Conf)
 				if err != nil {
@@ -90,15 +89,15 @@ func LaodConfig() {
 	// 检查格式版本
 	if Conf.Version != confVer {
 		logger.Log.Warn("Your configuartion file is outdated. Please do consider updating is.")
-		logger.Log.Hint("Check the latest version of zel's configuration file.")
+		logger.Log.Hint("Check the latest version of cgear's configuration file.")
 	}
 
-	// 设置 ZEL_HOME 环境变量
-	if zelHome := os.Getenv("ZEL_HOME"); zelHome == "" {
+	// 设置 CGEAR_HOME 环境变量
+	if cgearHome := os.Getenv("CGEAR_HOME"); cgearHome == "" {
 		// 获取程序所在的路径
-		programPath := utils.GetZelWorkPath()
+		programPath := utils.GetCgearWorkPath()
 
-		cmd := exec.Command("SETX", "ZEL_HOME", programPath)
+		cmd := exec.Command("SETX", "CGEAR_HOME", programPath)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
@@ -136,6 +135,6 @@ func SaveConfig(projectPath string) error {
 		logger.Log.Error(err.Error())
 	}
 
-	err = os.WriteFile(filepath.Join(projectPath, "zel.json"), configJson, 0644)
+	err = os.WriteFile(filepath.Join(projectPath, "cgear.json"), configJson, 0644)
 	return err
 }

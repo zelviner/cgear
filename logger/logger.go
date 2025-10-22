@@ -11,7 +11,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ZEL-30/zel/logger/colors"
+	"github.com/zelviner/cgear/logger/colors"
 )
 
 var errInvalidLogLevel = errors.New("logger: invaild log level")

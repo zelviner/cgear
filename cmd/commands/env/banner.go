@@ -6,18 +6,18 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/logger"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/logger"
 )
 
 type EnvInfo struct {
-	ZelVersion  string
-	ZelHome     string
-	Toolchain   string
-	Generator   string
-	Platform    string
-	BuildType   string
-	ProjectType string
+	CgearVersion string
+	CgearHome    string
+	Toolchain    string
+	Generator    string
+	Platform     string
+	BuildType    string
+	ProjectType  string
 }
 
 // InitBanner 加载横幅并打印到输出
@@ -43,11 +43,11 @@ func show(out io.Writer, content string) {
 	}
 
 	envInfo := EnvInfo{
-		ZelVersion:  config.Version,
-		Generator:   config.Conf.Generator,
-		Platform:    config.Conf.Platform,
-		BuildType:   config.Conf.BuildType,
-		ProjectType: config.Conf.ProjectType,
+		CgearVersion: config.Version,
+		Generator:    config.Conf.Generator,
+		Platform:     config.Conf.Platform,
+		BuildType:    config.Conf.BuildType,
+		ProjectType:  config.Conf.ProjectType,
 	}
 
 	if config.Conf.Toolchain == nil {
@@ -56,8 +56,8 @@ func show(out io.Writer, content string) {
 		envInfo.Toolchain = config.Conf.Toolchain.Name
 	}
 
-	if cPath := os.Getenv("ZEL_HOME"); cPath != "" {
-		envInfo.ZelHome = cPath
+	if cPath := os.Getenv("CGEAR_HOME"); cPath != "" {
+		envInfo.CgearHome = cPath
 	}
 
 	err = t.Execute(out, envInfo)

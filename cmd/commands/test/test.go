@@ -8,13 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ZEL-30/zel/cmake"
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/version"
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/logger/colors"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/cmake"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/cmd/commands/version"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/logger/colors"
+	"github.com/zelviner/cgear/utils"
 )
 
 var CmdTest = &commands.Command{
@@ -42,7 +42,7 @@ func init() {
 
 func RunTest(cmd *commands.Command, args []string) int {
 
-	appPath := utils.GetZelWorkPath()
+	appPath := utils.GetCgearWorkPath()
 	buildPath = filepath.Join(appPath, "build")
 	testPath = filepath.Join(appPath, "bin", "test")
 
@@ -192,12 +192,12 @@ func getTestProgramName(testName string) string {
 
 func getDllPath() string {
 	var dllPath string
-	zelHome := utils.GetZelHomePath()
+	cgearHome := utils.GetCgearHomePath()
 	switch config.Conf.Platform {
 	case "x86":
-		dllPath = filepath.Join(zelHome, "installed", "x86-windows")
+		dllPath = filepath.Join(cgearHome, "installed", "x86-windows")
 	case "x64":
-		dllPath = filepath.Join(zelHome, "installed", "x64-windows")
+		dllPath = filepath.Join(cgearHome, "installed", "x64-windows")
 	}
 
 	switch config.Conf.BuildType {

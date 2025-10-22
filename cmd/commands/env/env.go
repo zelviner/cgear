@@ -4,20 +4,22 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/env"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/env"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/utils"
 )
 
-const envInfoTemplate string = `%s%s _____     _ 
-/ _  / ___| |
-\// / / _ \ |
- / //\  __/ |__
-/____/\___|___/  v{{ .ZelVersion }}%s
+const envInfoTemplate string = `
+%s%s  ██████╗ ██████╗ ███████╗ █████╗ ██████╗ 
+██╔════╝██╔════╝ ██╔════╝██╔══██╗██╔══██╗
+██║     ██║  ███╗█████╗  ███████║██████╔╝
+██║     ██║   ██║██╔══╝  ██╔══██║██╔══██╗
+╚██████╗╚██████╔╝███████╗██║  ██║██║  ██║
+ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝  v{{ .CgearVersion }}%s
 %s%s
-├── ZelHome      : {{ .ZelHome }}
+├── CgearHome    : {{ .CgearHome }}
 ├── Toolchain    : {{ .Toolchain }}
 ├── Platform     : {{ .Platform }}
 ├── Generator    : {{ .Generator }}
@@ -31,11 +33,11 @@ var CmdEnv = &commands.Command{
 	Short:     "Setting up the environment for running C++ projects",
 	Long: `▶ {{"To set Toolchain for your C++ project:"|bold}}
 
-     $ zel env Toolchain
+     $ cgear env Toolchain
 
   ▶ {{"To set BuildType for your C++ project:"|bold}}
 
-     $ zel env BuildType
+     $ cgear env BuildType
 
 `,
 	Run: SetEnv,
@@ -47,9 +49,9 @@ func init() {
 
 func SetEnv(cmd *commands.Command, args []string) int {
 	stdout := cmd.Out()
-	curryPath := utils.GetZelWorkPath()
-	if !utils.IsZelProject(curryPath) {
-		logger.Log.Fatal("Not a Zel project")
+	curryPath := utils.GetCgearWorkPath()
+	if !utils.IsCgearProject(curryPath) {
+		logger.Log.Fatal("Not a Cgear project")
 	}
 
 	if len(args) != 0 {

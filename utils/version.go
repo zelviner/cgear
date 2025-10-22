@@ -1,3 +1,3 @@
 package utils
 
-const ZEL_VERSION = "v1.0.0"
+const CGEAR_VERSION = "v1.0.0"

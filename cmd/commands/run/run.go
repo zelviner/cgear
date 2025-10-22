@@ -3,10 +3,10 @@ package run
 import (
 	"path/filepath"
 
-	"github.com/ZEL-30/zel/cmake"
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/cmake"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/utils"
 )
 
 var CmdRun = &commands.Command{
@@ -33,7 +33,7 @@ func init() {
 // RunApp定位要监视的文件，并启动 C++ 应用程序
 func RunApp(cmd *commands.Command, args []string) int {
 
-	projectPath := utils.GetZelWorkPath()
+	projectPath := utils.GetCgearWorkPath()
 	appName = filepath.Base(projectPath)
 
 	buildPath := filepath.Join(projectPath, "build")

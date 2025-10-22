@@ -1,4 +1,4 @@
-module github.com/ZEL-30/zel
+module github.com/zelviner/cgear
 
 go 1.20
 

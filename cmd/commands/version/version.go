@@ -5,21 +5,24 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"os"
 	"runtime"
 
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/logger/colors"
+	"gopkg.in/yaml.v2"
+
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/logger/colors"
 )
 
-const verboseVersionBanner string = `%s%s _____     _ 
-/ _  / ___| |
-\// / / _ \ |
- / //\  __/ |__
-/____/\___|___/  v{{ .ZelVersion }}%s
+const verboseVersionBanner string = `
+%s%s  ██████╗ ██████╗ ███████╗ █████╗ ██████╗ 
+██╔════╝██╔════╝ ██╔════╝██╔══██╗██╔══██╗
+██║     ██║  ███╗█████╗  ███████║██████╔╝
+██║     ██║   ██║██╔══╝  ██╔══██║██╔══██╗
+╚██████╗╚██████╔╝███████╗██║  ██║██║  ██║
+ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝  v{{ .CgearVersion }}%s          
 %s%s
 ├── OS        : {{ .OS }}
 ├── NumCPU    : {{ .NumCPU }}
@@ -27,16 +30,19 @@ const verboseVersionBanner string = `%s%s _____     _
 └── Date      : {{ Now "Monday, 2 Jan 2006" }}%s
 `
 
-const shortVersionBanner string = ` _____     _ 
-/ _  / ___| |
-\// / / _ \ |
- / //\  __/ |__
-/____/\___|___/  v{{ .ZelVersion }}
+const shortVersionBanner string = `
+ ██████╗ ██████╗ ███████╗ █████╗ ██████╗ 
+██╔════╝██╔════╝ ██╔════╝██╔══██╗██╔══██╗
+██║     ██║  ███╗█████╗  ███████║██████╔╝
+██║     ██║   ██║██╔══╝  ██╔══██║██╔══██╗
+╚██████╗╚██████╔╝███████╗██║  ██║██║  ██║
+ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝
+                                          v{{ .CgearVersion }}
 `
 
 var CmdVersion = &commands.Command{
 	UsageLine: "version",
-	Short:     "Prints the current Zel version",
+	Short:     "Prints the current Cgear version",
 	Long: `
 Prints the current Bee, Beego and Go version alongside the platform information.
 `,
@@ -60,10 +66,10 @@ func versionCmd(cmd *commands.Command, args []string) int {
 
 	if outputFormat != "" {
 		runtimeInfo := RuntimeInfo{
-			OS:         runtime.GOOS,
-			NumCPU:     runtime.NumCPU(),
-			Compiler:   runtime.Compiler,
-			ZelVersion: version,
+			OS:           runtime.GOOS,
+			NumCPU:       runtime.NumCPU(),
+			Compiler:     runtime.Compiler,
+			CgearVersion: version,
 		}
 		switch outputFormat {
 		case "json":

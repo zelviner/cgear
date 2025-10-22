@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ZEL-30/zel/logger/colors"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/logger/colors"
+	"github.com/zelviner/cgear/utils"
 )
 
 // command 是一个执行单位
@@ -41,7 +41,7 @@ type Command struct {
 var AvailableCommands = []*Command{}
 
 // 命令使用说明
-var cmdUsage = `Use {{printf "zel help %s" .Name | bold}} for more information.{{endline}}`
+var cmdUsage = `Use {{printf "cgear help %s" .Name | bold}} for more information.{{endline}}`
 
 // 返回命令的名称：Usage行中的第一个单词
 func (c *Command) Name() string {

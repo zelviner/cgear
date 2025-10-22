@@ -5,10 +5,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/env"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/env"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/utils"
 )
 
 // cmake 配置命令参数
@@ -27,8 +27,7 @@ type ConfigArg struct {
 // cmake 构建命令参数
 type BuildArg struct {
 	BuildPath string // 构建路径
-	// BuildType string // 构建类型
-	Target string // 构建目标
+	Target    string // 构建目标
 }
 
 var (
@@ -37,7 +36,7 @@ var (
 )
 
 func init() {
-	appPath = utils.GetZelWorkPath()
+	appPath = utils.GetCgearWorkPath()
 	appName = filepath.Base(appPath)
 }
 
@@ -49,12 +48,12 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) 
 
 	// 设置临时环境变量
 	var dllPath string
-	zelHome := utils.GetZelHomePath()
+	cgearHome := utils.GetCgearHomePath()
 	switch config.Conf.Platform {
 	case "x86":
-		dllPath = filepath.Join(zelHome, "installed", "x86-windows")
+		dllPath = filepath.Join(cgearHome, "installed", "x86-windows")
 	case "x64":
-		dllPath = filepath.Join(zelHome, "installed", "x64-windows")
+		dllPath = filepath.Join(cgearHome, "installed", "x64-windows")
 	}
 
 	switch config.Conf.BuildType {

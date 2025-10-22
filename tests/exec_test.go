@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/ZEL-30/zel/logger/colors"
+	"github.com/zelviner/cgear/logger/colors"
 )
 
 func TestExec(t *testing.T) {

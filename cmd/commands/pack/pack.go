@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ZEL-30/zel/cmake"
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/cmake"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/utils"
 )
 
 var CmdPack = &commands.Command{
@@ -22,7 +22,7 @@ var CmdPack = &commands.Command{
   This eases the deployment by directly extracting the file to a server.
  
   {{"Example:"|bold}}
-    $ bee pack -v -ba="-ldflags '-s -w'" 
+    $ cgear pack -v -ba="-ldflags '-s -w'" 
 `,
 	PreRun: func(cmd *commands.Command, args []string) {},
 	Run:    packProject,
@@ -52,7 +52,7 @@ func init() {
 }
 
 func packProject(cmd *commands.Command, args []string) int {
-	projectPath = utils.GetZelWorkPath()
+	projectPath = utils.GetCgearWorkPath()
 	projectName := filepath.Base(projectPath)
 
 	nArgs := []string{}

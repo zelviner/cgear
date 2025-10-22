@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/utils"
 )
 
 var CmdCount = &commands.Command{
@@ -24,7 +24,7 @@ func init() {
 
 func Count(cmd *commands.Command, args []string) int {
 
-	projectPath := utils.GetZelWorkPath()
+	projectPath := utils.GetCgearWorkPath()
 
 	var lines int = 0
 	walkFunc := func(path string, info os.FileInfo, err error) error {

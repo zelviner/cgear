@@ -7,27 +7,27 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/cmd/commands/version"
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/env"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/logger/colors"
-	ui "github.com/ZEL-30/zel/ui/select"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/cmd/commands/version"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/env"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/logger/colors"
+	ui "github.com/zelviner/cgear/ui/select"
+	"github.com/zelviner/cgear/utils"
 )
 
 var (
-	test        bool
-	qt          bool
-	zelVersion  utils.DocValue
-	output      io.Writer
-	projectPath string
-	projectName string
+	test         bool
+	qt           bool
+	cgearVersion utils.DocValue
+	output       io.Writer
+	projectPath  string
+	projectName  string
 )
 
 var CmdNew = &commands.Command{
-	UsageLine: "new [project_name] [-qt=false]",
+	UsageLine: "new [project_name]",
 	Short:     "Create a C++ project, using cmake tool and opening by vscode",
 	Long: `Creates a C++ project for the given project name in the current directory.
   The command 'new' creates a folder named [projectname] [-qt=false] and generates the following structure:
@@ -69,11 +69,9 @@ func Create(cmd *commands.Command, args []string) int {
 		logger.Log.Fatal("Parse args err" + err.Error())
 	}
 
-	// install.InstallGTest()
-
 	output = cmd.Out()
 	projectName = args[0]
-	projectPath = filepath.Join(utils.GetZelWorkPath(), projectName)
+	projectPath = filepath.Join(utils.GetCgearWorkPath(), projectName)
 
 	if utils.IsExist(projectPath) {
 		logger.Log.Errorf(colors.Bold("Project '%s' already exists"), projectPath)
@@ -335,10 +333,10 @@ func createTestCase() {
 		testConfigPath string
 	)
 
-	testsPath = filepath.Join(utils.GetZelWorkPath(), "test")
-	testPath = filepath.Join(utils.GetZelWorkPath(), "test", projectName)
+	testsPath = filepath.Join(utils.GetCgearWorkPath(), "test")
+	testPath = filepath.Join(utils.GetCgearWorkPath(), "test", projectName)
 	testFileName = projectName + "_test.cpp"
-	testConfigPath = filepath.Join(utils.GetZelWorkPath(), ".vscode", "launch.json")
+	testConfigPath = filepath.Join(utils.GetCgearWorkPath(), ".vscode", "launch.json")
 
 	if utils.IsExist(testPath) {
 		logger.Log.Errorf(colors.Bold("Test case '%s' already exists"), testPath)

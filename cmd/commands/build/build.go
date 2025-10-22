@@ -3,11 +3,11 @@ package build
 import (
 	"path/filepath"
 
-	"github.com/ZEL-30/zel/cmake"
-	"github.com/ZEL-30/zel/cmd/commands"
-	"github.com/ZEL-30/zel/config"
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/cmake"
+	"github.com/zelviner/cgear/cmd/commands"
+	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/logger"
+	"github.com/zelviner/cgear/utils"
 )
 
 var CmdBuild = &commands.Command{
@@ -35,7 +35,7 @@ func init() {
 
 func BuildApp(cmd *commands.Command, args []string) int {
 
-	appPath := utils.GetZelWorkPath()
+	appPath := utils.GetCgearWorkPath()
 	buildPath = filepath.Join(appPath, "build")
 
 	configArg := cmake.ConfigArg{

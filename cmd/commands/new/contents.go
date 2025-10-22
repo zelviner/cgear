@@ -4,7 +4,7 @@ var gitignore = `.cache
 build
 bin
 lib
-zel.json
+cgear.json
 `
 
 var clangFormat = `# Run manually to reformat a file:
@@ -209,7 +209,7 @@ cmake_minimum_required(VERSION 3.14)
 project({{ .ProjectName }} VERSION 0.1.0 LANGUAGES CXX)
 
 # [2] vcpkg工具链配置 ----------------------------------------------
-if(DEFINED ENV{ZEL_HOME})
+if(DEFINED ENV{CGEAR_HOME})
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(VCPKG_TARGET_TRIPLET "x64-windows")
   else()
@@ -217,18 +217,18 @@ if(DEFINED ENV{ZEL_HOME})
   endif()
 
   # 设置工具链文件
-  set(CMAKE_TOOLCHAIN_FILE "$ENV{ZEL_HOME}/scripts/buildsystems/vcpkg.cmake"
+  set(CMAKE_TOOLCHAIN_FILE "$ENV{CGEAR_HOME}/scripts/buildsystems/vcpkg.cmake"
     CACHE STRING "Vcpkg toolchain file" FORCE)
   
   # 自动搜索vcpkg包路径
-  list(APPEND CMAKE_PREFIX_PATH "$ENV{ZEL_HOME}/installed/${VCPKG_TARGET_TRIPLET}")
+  list(APPEND CMAKE_PREFIX_PATH "$ENV{CGEAR_HOME}/installed/${VCPKG_TARGET_TRIPLET}")
   message(STATUS "[1] VCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}")
 endif()
 
 # [3] 全局安装路径配置 ----------------------------------------------
 include(GNUInstallDirs)
-if(DEFINED ENV{ZEL_HOME})
-  set(CMAKE_INSTALL_PREFIX "$ENV{ZEL_HOME}/installed/${VCPKG_TARGET_TRIPLET}"
+if(DEFINED ENV{CGEAR_HOME})
+  set(CMAKE_INSTALL_PREFIX "$ENV{CGEAR_HOME}/installed/${VCPKG_TARGET_TRIPLET}"
     CACHE PATH "Install path" FORCE)
 else()
   set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/installed")
@@ -266,6 +266,8 @@ function(add_integration_test name)
     add_executable(${name}_test ${files})
     target_include_directories(${name}_test 
         PUBLIC
+            # 包含头文件目录
+            ${PROJECT_SOURCE_DIR}/test
     )
     target_link_libraries(${name}_test
         PUBLIC

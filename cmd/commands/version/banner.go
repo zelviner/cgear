@@ -6,17 +6,16 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ZEL-30/zel/logger"
-	"github.com/ZEL-30/zel/utils"
+	"github.com/zelviner/cgear/logger"
 )
 
 // RuntimeInfo 保存有关当前运行时的信息
 type RuntimeInfo struct {
-	OS         string
-	NumCPU     int
-	Compiler   string
-	ZelVersion string
-	Published  string
+	OS           string
+	NumCPU       int
+	Compiler     string
+	CgearVersion string
+	Published    string
 }
 
 // InitBanner 加载横幅并打印到输出
@@ -42,11 +41,11 @@ func show(out io.Writer, content string) {
 	}
 
 	runtimeInfo := RuntimeInfo{
-		OS:         runtime.GOOS,
-		NumCPU:     runtime.NumCPU(),
-		Compiler:   runtime.Compiler,
-		ZelVersion: version,
-		Published:  utils.GetLastPublishedTime(),
+		OS:           runtime.GOOS,
+		NumCPU:       runtime.NumCPU(),
+		Compiler:     runtime.Compiler,
+		CgearVersion: version,
+		// Published:    utils.GetLastPublishedTime(),
 	}
 
 	err = t.Execute(out, runtimeInfo)
