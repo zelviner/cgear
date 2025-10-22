@@ -33,21 +33,6 @@ var (
 )
 
 func init() {
-	// fs := flag.NewFlagSet("pack", flag.ContinueOnError)
-	// fs.StringVar(&projectPath, "p", "", "Set the project path. Defaults to the current path.")
-	// fs.BoolVar(&isBuild, "b", true, "Tell the command to do a build for the current platform. Defaults to true.")
-	// fs.StringVar(&projectName, "a", "", "Set the application name. Defaults to the dir name.")
-	// fs.StringVar(&buildArgs, "ba", "", "Specify additional args for Go build.")
-	// // fs.Var(&buildEnvs, "be", "Specify additional env variables for Go build. e.g. GOARCH=arm.")
-	// fs.StringVar(&outputP, "o", "", "Set the compressed file output path. Defaults to the current path.")
-	// fs.StringVar(&format, "f", "tar.gz", "Set file format. Either tar.gz or zip. Defaults to tar.gz.")
-	// fs.StringVar(&excludeP, "exp", ".", "Set prefixes of paths to be excluded. Uses a column (:) as separator.")
-	// fs.StringVar(&excludeS, "exs", ".go:.DS_Store:.tmp", "Set suffixes of paths to be excluded. Uses a column (:) as separator.")
-	// // fs.Var(&excludeR, "exr", "Set a regular expression of files to be excluded.")
-	// fs.BoolVar(&fsym, "fs", false, "Tell the command to follow symlinks. Defaults to false.")
-	// fs.BoolVar(&ssym, "ss", false, "Tell the command to skip symlinks. Defaults to false.")
-	// fs.BoolVar(&verbose, "v", false, "Be more verbose during the operation. Defaults to false.")
-	// CmdPack.Flag = *fs
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdPack)
 }
 
@@ -102,8 +87,8 @@ func packProject(cmd *commands.Command, args []string) int {
 				if err != nil {
 					return err
 				}
-			} else if strings.Contains(info.Name(), "-test.exe") {
-				// Skip the -test.exe file
+			} else if strings.Contains(info.Name(), "_test.exe") {
+				// Skip the _test.exe file
 				return nil
 			} else {
 				_, err := utils.CopyFile(path, filepath.Join(desPath, info.Name()))
@@ -126,7 +111,14 @@ func packProject(cmd *commands.Command, args []string) int {
 		logger.Log.Fatal(err.Error())
 	}
 
-	// 压缩
+	// 运行时依赖
+	if err = runtimeDependencies(desPath); err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+
+	// TODO Innosetup 打包
+
+	// 便携式打包
 	err = utils.ZipFile(desPath, zipdir)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
@@ -172,3 +164,61 @@ func build() {
 
 	logger.Log.Success("Build successful!")
 }
+
+func runtimeDependencies(desPath string) error {
+	var dllPath string
+	cgearHome := utils.GetCgearInstalledPath()
+	switch config.Conf.Platform {
+	case "x86":
+		dllPath = filepath.Join(cgearHome, "x86-windows")
+	case "x64":
+		dllPath = filepath.Join(cgearHome, "x64-windows")
+	}
+
+	// switch config.Conf.BuildType {
+	// case "Debug":
+	// 	dllPath = filepath.Join(dllPath, "debug", "bin")
+	// case "Release":
+	// 	dllPath = filepath.Join(dllPath, "bin")
+	// }
+
+	dllPath = filepath.Join(dllPath, "bin")
+	for _, dep := range config.Conf.RuntimeDependencies {
+		if dep == "input dynamic libraries here" {
+			continue
+		}
+
+		dep += ".dll"
+		dll := filepath.Join(dllPath, dep)
+		if !utils.IsExist(dll) {
+			return fmt.Errorf("runtime dependency %s not found in %s", dep, dllPath)
+		}
+
+		_, err := utils.CopyFile(dll, filepath.Join(desPath, dep))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// func innosetupPack() error {
+// issPath := filepath.Join(projectPath, "installer.iss")
+
+// // 调用 ISCC.exe
+// iscc := `C:\Program Files (x86)\Inno Setup 6\ISCC.exe` // 或者你的安装路径
+// cmdISCC := exec.Command(iscc, issPath)
+// cmdISCC.Stdout = os.Stdout
+// cmdISCC.Stderr = os.Stderr
+
+// logger.Log.Infof("Running Inno Setup compiler...")
+
+// if err := cmdISCC.Run(); err != nil {
+// 	logger.Log.Fatal("Inno Setup failed: ", err.Error())
+// }
+
+// logger.Log.Success("Inno Setup installer generated successfully!")
+
+// 	return nil
+// }

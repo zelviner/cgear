@@ -19,15 +19,14 @@ const (
 )
 
 type Config struct {
-	Version         int
-	Toolchain       *Toolchain `json:"toolchain" yaml:"toolchain"`       // 编译工具链
-	Generator       string     `json:"generator" yaml:"generator"`       // 生成器
-	Platform        string     `json:"platform" yaml:"platform"`         // 编译架构
-	BuildType       string     `json:"build_type" yaml:"build_type"`     // 编译类型
-	ProjectType     string     `json:"project_type" yaml:"project_type"` // 项目类型
-	ProjectPath     string     `json:"project_path" yaml:"project_path"` // 项目路径
-	WatchExts       []string   `json:"watch_exts" yaml:"watch_exts"`
-	WatchExtsStatic []string   `json:"watch_exts_static" yaml:"watch_exts_static"`
+	Version             int
+	Toolchain           *Toolchain `json:"toolchain" yaml:"toolchain"`                       // 编译工具链
+	Generator           string     `json:"generator" yaml:"generator"`                       // 生成器
+	Platform            string     `json:"platform" yaml:"platform"`                         // 编译架构
+	BuildType           string     `json:"build_type" yaml:"build_type"`                     // 编译类型
+	ProjectType         string     `json:"project_type" yaml:"project_type"`                 // 项目类型
+	ProjectPath         string     `json:"project_path" yaml:"project_path"`                 // 项目路径
+	RuntimeDependencies []string   `json:"runtime_dependencies" yaml:"runtime_dependencies"` // 运行时依赖动态库
 }
 
 type Toolchain struct {
@@ -43,10 +42,9 @@ type Compiler struct {
 }
 
 var Conf = Config{
-	WatchExts:       []string{".h", ".hpp", ".cpp"},
-	WatchExtsStatic: []string{".html", ".tpl", ".js", ".css"},
-	BuildType:       "Debug",
-	Toolchain:       nil,
+	BuildType:           "Debug",
+	Toolchain:           nil,
+	RuntimeDependencies: []string{"input dynamic libraries here"},
 }
 
 // LoadConfig 加载 cgear tool配置。

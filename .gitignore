@@ -31,3 +31,5 @@ bee
 *.exe~
 .goxc.local.json
 vendor
+
+bin

@@ -305,8 +305,8 @@ TEST({{ .testName }}, class) {
 var testLaunch = `{
             "type": "lldb",
             "request": "launch",
-            "name": "{{ .testName }}-test",
-            "program": "${workspaceFolder}/build/test/{{ .testName }}-test.exe",
+            "name": "{{ .testName }}_test",
+            "program": "${workspaceFolder}/build/test/{{ .testName }}_test.exe",
             "args": [],
             "cwd": "${workspaceFolder}"
         },
