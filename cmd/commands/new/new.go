@@ -157,8 +157,8 @@ func createApp() {
 	os.MkdirAll(filepath.Join(projectPath, "cmake"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vecode")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, ".vscode"), 0755)
-	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
-	os.MkdirAll(filepath.Join(projectPath, "docs"), 0755)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "doc")+string(filepath.Separator), "\x1b[0m")
+	os.MkdirAll(filepath.Join(projectPath, "doc"), 0755)
 
 	// 创建C++项目所需文件
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "CMakeLists.txt"), "\x1b[0m")
@@ -185,8 +185,10 @@ func createApp() {
 	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-32bit-toolchain.cmake"), toolchainFile32Bit)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), toolchainFile64Bit)
-	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vsocde", "CMakeLists.txt"), "\x1b[0m")
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vsocde", "launch.json"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, ".vscode", "launch.json"), launch)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "doc", "cpp_naming_style.md"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "doc", "cpp_naming_style.md"), cppNamingStyle)
 
 	logger.Log.Success("New application successfully created!")
 }
@@ -217,8 +219,8 @@ func createQTApp() {
 	os.MkdirAll(filepath.Join(projectPath, "res", "ui"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "cmake"), 0755)
-	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
-	os.MkdirAll(filepath.Join(projectPath, "docs"), 0755)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "doc")+string(filepath.Separator), "\x1b[0m")
+	os.MkdirAll(filepath.Join(projectPath, "doc"), 0755)
 
 	// 创建C++项目所需文件
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "CMakeLists.txt"), "\x1b[0m")
@@ -261,6 +263,8 @@ func createQTApp() {
 	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-32bit-toolchain.cmake"), toolchainFile32Bit)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), toolchainFile64Bit)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "doc", "cpp_naming_style.md"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "doc", "cpp_naming_style.md"), cppNamingStyle)
 
 	logger.Log.Success("New qt application successfully created!")
 }
@@ -288,8 +292,8 @@ func createLib(libType string) {
 	os.MkdirAll(filepath.Join(projectPath, ".vscode"), 0755)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "cmake")+string(filepath.Separator), "\x1b[0m")
 	os.MkdirAll(filepath.Join(projectPath, "cmake"), 0755)
-	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "docs")+string(filepath.Separator), "\x1b[0m")
-	os.MkdirAll(filepath.Join(projectPath, "docs"), 0755)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "doc")+string(filepath.Separator), "\x1b[0m")
+	os.MkdirAll(filepath.Join(projectPath, "doc"), 0755)
 
 	// 创建C++项目所需文件
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "CMakeLists.txt"), "\x1b[0m")
@@ -320,6 +324,8 @@ func createLib(libType string) {
 	utils.WriteToFile(filepath.Join(projectPath, "cmake", "clang-64bit-toolchain.cmake"), toolchainFile64Bit)
 	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, ".vsocde", "CMakeLists.txt"), "\x1b[0m")
 	utils.WriteToFile(filepath.Join(projectPath, ".vscode", "launch.json"), launch)
+	fmt.Fprintf(output, "\t%s%screate%s\t %s%s\n", "\x1b[32m", "\x1b[1m", "\x1b[21m", filepath.Join(projectPath, "doc", "cpp_naming_style.md"), "\x1b[0m")
+	utils.WriteToFile(filepath.Join(projectPath, "doc", "cpp_naming_style.md"), cppNamingStyle)
 
 	logger.Log.Successf("New %s successfully created!", libType)
 }

@@ -188,12 +188,12 @@ MainWindow::MainWindow(QMainWindow *parent)
 
 MainWindow::~MainWindow() { delete ui_; }
 
-void MainWindow::initWindow() {
+void MainWindow::init_window() {
     // 设置窗口标题
     setWindowTitle("Cgear Window");
 }
 
-void MainWindow::initUI() {
+void MainWindow::init_ui() {
     // 插入图片
     // QPixmap pixmap(":/image/data.png");
     // ui_->push_btn->setIcon(pixmap);
@@ -202,5 +202,5 @@ void MainWindow::initUI() {
     ui_->push_btn->setText("欢迎使用 Cgear C++ 脚手架");
 }
 
-void MainWindow::initSignalSlot() {}
+void MainWindow::init_signals_slots() {}
 `
