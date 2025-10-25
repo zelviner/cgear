@@ -30,9 +30,9 @@ type Config struct {
 }
 
 type Toolchain struct {
-	Name      string   `json:"name" yaml:"name"`
-	Compiler  Compiler `json:"compilers" yaml:"compilers"`
-	IsTrusted bool     `json:"isTrusted" yaml:"isTrusted"`
+	Name     string   `json:"name" yaml:"name"`
+	Compiler Compiler `json:"compilers" yaml:"compilers"`
+	IsMSVC   bool     `json:"is_msvc" yaml:"is_msvc"`
 }
 
 // 编译器

@@ -155,6 +155,8 @@ func build() {
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
+		BuildType: config.Conf.BuildType,
+		IsMSVC:    config.Conf.Toolchain.IsMSVC,
 	}
 
 	err := cmake.Build(&configArg, &buildArg, true, false)

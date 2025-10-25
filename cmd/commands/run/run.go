@@ -52,6 +52,8 @@ func RunApp(cmd *commands.Command, args []string) int {
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
+		BuildType: config.Conf.BuildType,
+		IsMSVC:    config.Conf.Toolchain.IsMSVC,
 	}
 
 	cmake.Run(&configArg, &buildArg, appName, rebuild)

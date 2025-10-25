@@ -28,6 +28,8 @@ type ConfigArg struct {
 type BuildArg struct {
 	BuildPath string // 构建路径
 	Target    string // 构建目标
+	BuildType string // 构建类型
+	IsMSVC    bool   // 是否为 MSVC 工具链
 }
 
 var (
@@ -136,21 +138,42 @@ func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool
 func (c *ConfigArg) toStringSlice() []string {
 	var result []string
 
-	switch c.Platform {
-	case "x86":
-		toolchainFile := filepath.Join(c.ProjectPath, "cmake/clang-32bit-toolchain.cmake")
-		result = append(result, "-DCMAKE_TOOLCHAIN_FILE="+toolchainFile)
-	case "x64":
-		toolchainFile := filepath.Join(c.ProjectPath, "cmake/clang-64bit-toolchain.cmake")
-		result = append(result, "-DCMAKE_TOOLCHAIN_FILE="+toolchainFile)
+	if c.Generator != "" {
+		result = append(result, "-G", c.Generator)
 	}
 
 	if c.Toolchain.Compiler.C != "" {
-		result = append(result, "-DCMAKE_C_COMPILER:FILEPATH="+c.Toolchain.Compiler.C)
+		if !c.Toolchain.IsMSVC {
+			result = append(result, "-DCMAKE_C_COMPILER:FILEPATH="+c.Toolchain.Compiler.C)
+		}
 	}
 
 	if c.Toolchain.Compiler.CXX != "" {
-		result = append(result, "-DCMAKE_CXX_COMPILER:FILEPATH="+c.Toolchain.Compiler.CXX)
+		if c.Toolchain.IsMSVC {
+			result = append(result, "-T", c.Toolchain.Compiler.C)
+		} else {
+			result = append(result, "-DCMAKE_CXX_COMPILER:FILEPATH="+c.Toolchain.Compiler.CXX)
+		}
+	}
+
+	switch c.Platform {
+	case "x86":
+		if c.Toolchain.IsMSVC {
+			result = append(result, "-A", "Win32")
+			break
+		}
+
+		toolchainFile := filepath.Join(c.ProjectPath, "cmake/clang-32bit-toolchain.cmake")
+		result = append(result, "-DCMAKE_TOOLCHAIN_FILE="+toolchainFile)
+
+	case "x64":
+		if c.Toolchain.IsMSVC {
+			result = append(result, "-A", "x64")
+			break
+		}
+
+		toolchainFile := filepath.Join(c.ProjectPath, "cmake/clang-64bit-toolchain.cmake")
+		result = append(result, "-DCMAKE_TOOLCHAIN_FILE="+toolchainFile)
 	}
 
 	switch c.BuildType {
@@ -176,10 +199,6 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "-B"+c.BuildPath)
 	}
 
-	if c.Generator != "" {
-		result = append(result, "-G="+c.Generator)
-	}
-
 	return result
 }
 
@@ -189,14 +208,18 @@ func (b *BuildArg) toStringSlice() []string {
 	result = append(result, "--build")
 	result = append(result, b.BuildPath)
 
-	// result = append(result, "--config")
-	// result = append(result, b.BuildType)
+	if b.IsMSVC {
+		result = append(result, "--config")
+		result = append(result, b.BuildType)
+	}
 
-	result = append(result, "--target")
-	if len(b.Target) != 0 {
-		result = append(result, b.Target)
-	} else {
-		result = append(result, "all")
+	if !b.IsMSVC && b.Target != "" {
+		result = append(result, "--target")
+		if len(b.Target) != 0 {
+			result = append(result, b.Target)
+		} else {
+			result = append(result, "all")
+		}
 	}
 
 	result = append(result, "--")

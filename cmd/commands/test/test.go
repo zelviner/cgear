@@ -140,6 +140,8 @@ func runTest(testName string) {
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
+		BuildType: config.Conf.BuildType,
+		IsMSVC:    config.Conf.Toolchain.IsMSVC,
 	}
 
 	// 设置临时环境变量

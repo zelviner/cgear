@@ -53,6 +53,8 @@ func BuildApp(cmd *commands.Command, args []string) int {
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
 		Target:    target,
+		BuildType: config.Conf.BuildType,
+		IsMSVC:    config.Conf.Toolchain.IsMSVC,
 	}
 
 	err := cmake.Build(&configArg, &buildArg, rebuild, true)
