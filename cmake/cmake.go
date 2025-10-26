@@ -1,9 +1,11 @@
 package cmake
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/zelviner/cgear/config"
 	"github.com/zelviner/cgear/env"
@@ -94,45 +96,49 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) 
 }
 
 func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool) error {
-
+	// 初始化 Toolchain
 	if configArg.Toolchain == nil {
 		env.SetToolchain()
 		configArg.Toolchain = config.Conf.Toolchain
 	}
 
-	// 检查是否需要重新构建
+	// 清理旧的 build 目录（如果需要重建）
 	if rebuild {
 		if _, err := os.Stat(configArg.BuildPath); err == nil {
-			os.RemoveAll(configArg.BuildPath)
+			if showInfo {
+				logger.Log.Infof("Removing existing build directory: %s", configArg.BuildPath)
+			}
+			if err := os.RemoveAll(configArg.BuildPath); err != nil {
+				return fmt.Errorf("failed to remove build directory: %w", err)
+			}
 		}
 	}
 
-	// 配置 C++ 项目
-	cmd := exec.Command("cmake", configArg.toStringSlice()...)
+	// 配置 CMake
+	cmakeCmd := exec.Command("cmake", configArg.toStringSlice()...)
 	if showInfo {
-		logger.Log.Infof("Running '%s'", cmd.String())
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		logger.Log.Infof("Running '%s'", cmakeCmd.String())
+		cmakeCmd.Stdout = os.Stdout
+		cmakeCmd.Stderr = os.Stderr
 	}
 
-	err := cmd.Run()
-	if err != nil {
-		return err
+	if err := cmakeCmd.Run(); err != nil {
+		return fmt.Errorf("cmake configure failed: %w", err)
 	}
 
-	// 编译 C++ 项目
-	cmd = exec.Command("cmake", buildArg.toStringSlice()...)
+	// 构建 CMake
+	buildCmd := exec.Command("cmake", buildArg.toStringSlice()...)
 	if showInfo {
-		logger.Log.Infof("Running '%s'", cmd.String())
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-	}
-	err = cmd.Run()
-	if err != nil {
-		return err
+		logger.Log.Infof("Running CMake build: %s", strings.Join(buildCmd.Args, " "))
+		buildCmd.Stdout = os.Stdout
+		buildCmd.Stderr = os.Stderr
 	}
 
-	return err
+	if err := buildCmd.Run(); err != nil {
+		return fmt.Errorf("cmake build failed: %w", err)
+	}
+
+	return nil
 }
 
 func (c *ConfigArg) toStringSlice() []string {

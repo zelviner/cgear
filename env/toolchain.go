@@ -25,7 +25,6 @@ var compilerTypes = map[string]string{
 	"Clang":    "clang++.exe",
 	"Clang-cl": "clang-cpp.exe",
 	"Mingw":    "g++.exe",
-	// "MSVC":     "cl.exe",
 }
 
 func SetToolchain() {
@@ -139,7 +138,6 @@ func getToolchain(compiler Compiler) (*config.Toolchain, error) {
 			Toolchain.Name = fmt.Sprintf("Clang %s %s", version, target)
 			Toolchain.Compiler.C = compiler.CPath
 			Toolchain.Compiler.CXX = compiler.CXXPath
-			Toolchain.IsMSVC = false
 		}
 
 	case "Clang-cl":
@@ -159,7 +157,6 @@ func getToolchain(compiler Compiler) (*config.Toolchain, error) {
 			Toolchain.Name = fmt.Sprintf("Clang-cl %s %s", version, target)
 			Toolchain.Compiler.C = compiler.CPath
 			Toolchain.Compiler.CXX = compiler.CPath
-			Toolchain.IsMSVC = false
 		}
 
 	case "Mingw":
@@ -179,7 +176,6 @@ func getToolchain(compiler Compiler) (*config.Toolchain, error) {
 			Toolchain.Name = fmt.Sprintf("GCC %s %s", version, target)
 			Toolchain.Compiler.C = compiler.CPath
 			Toolchain.Compiler.CXX = compiler.CXXPath
-			Toolchain.IsMSVC = false
 		}
 	}
 
@@ -214,7 +210,7 @@ func findMSVCCompiler() (toolchains []*config.Toolchain, err error) {
 			// tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release - amd64_86", filepath.Join(vsPath, "VC", "Tools", "MSVC", latest, "bin", "Hostx64", "x86", "cl.exe"))
 			// tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release - x86", filepath.Join(vsPath, "VC", "Tools", "MSVC", latest, "bin", "Hostx86", "x86", "cl.exe"))
 			// tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release - x86_64", filepath.Join(vsPath, "VC", "Tools", "MSVC", latest, "bin", "Hostx86", "x64", "cl.exe"))
-			tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release", "v144")
+			tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release", "v143")
 		} else if vsName == "Visual Studio Community 2019" {
 			// tryAddToolchain(&toolchains, "Visual Studio Community 2019 Release - amd64", filepath.Join(vsPath, "VC", "Tools", "MSVC", latest, "bin", "Hostx64", "x64", "cl.exe"))
 			// tryAddToolchain(&toolchains, "Visual Studio Community 2019 Release - amd64_86", filepath.Join(vsPath, "VC", "Tools", "MSVC", latest, "bin", "Hostx64", "x86", "cl.exe"))
@@ -279,19 +275,25 @@ func getMSVCVersion(vsPath string) (map[string]string, error) {
 			}
 		}
 	}
-	versions["Visual Studio Community 2019"] = vs2019Versions
-	versions["Visual Studio Community 2022"] = vs2022Versions
+
+	if len(vs2019Versions) > 0 {
+		versions["Visual Studio Community 2019"] = vs2019Versions
+	}
+
+	if len(vs2022Versions) > 0 {
+		versions["Visual Studio Community 2022"] = vs2022Versions
+	}
 
 	if len(versions) == 0 {
 		return nil, fmt.Errorf("未找到任何 MSVC 版本")
 	}
 
-	sort.Strings(versions["Visual Studio Community 2022"]) // 从小到大排序
-	sort.Strings(versions["Visual Studio Community 2019"]) // 从小到大排序
-
 	latests := make(map[string]string)
-	latests["Visual Studio Community 2022"] = versions["Visual Studio Community 2022"][len(versions["Visual Studio Community 2022"])-1]
-	latests["Visual Studio Community 2019"] = versions["Visual Studio Community 2019"][len(versions["Visual Studio Community 2019"])-1]
+	for k, v := range versions {
+		fmt.Println(k)
+		sort.Strings(v) // 从小到大排序
+		latests[k] = v[len(v)-1]
+	}
 
 	return latests, nil
 }
