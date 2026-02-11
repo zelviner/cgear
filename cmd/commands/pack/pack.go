@@ -38,7 +38,7 @@ func init() {
 
 func packProject(cmd *commands.Command, args []string) int {
 	projectPath = utils.GetCgearWorkPath()
-	projectName := filepath.Base(projectPath)
+	projectName, _ := utils.GetCgearAppName(projectPath)
 
 	nArgs := []string{}
 	has := false

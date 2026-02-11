@@ -34,7 +34,7 @@ func init() {
 func RunApp(cmd *commands.Command, args []string) int {
 
 	projectPath := utils.GetCgearWorkPath()
-	appName = filepath.Base(projectPath)
+	appName, _ = utils.GetCgearAppName(projectPath)
 
 	buildPath := filepath.Join(projectPath, "build")
 
