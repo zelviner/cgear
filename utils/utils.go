@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"text/template"
 	"time"
@@ -34,6 +37,31 @@ func GetCgearWorkPath() string {
 	}
 
 	return curPath
+}
+
+// GetCgearAppName 获取程序名
+func GetCgearAppName(appPath string) (string, error) {
+	file, err := os.Open(path.Join(appPath, "CMakeLists.txt"))
+	if err != nil {
+		return "", fmt.Errorf("not cgear project")
+	}
+	defer file.Close()
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return "", fmt.Errorf("not cgear project")
+	}
+
+	fileString := string(fileBytes)
+
+	// 匹配 project(XXX ...)
+	re := regexp.MustCompile(`(?i)project\s*\(\s*([^\s\)]+)`)
+	matches := re.FindStringSubmatch(fileString)
+	if len(matches) < 2 {
+		return "", fmt.Errorf("project name not found")
+	}
+
+	return matches[1], nil
 }
 
 // GetCgearHomePath 获取 Cgear 根目录的路径

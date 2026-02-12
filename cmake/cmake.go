@@ -41,7 +41,7 @@ var (
 
 func init() {
 	appPath = utils.GetCgearWorkPath()
-	appName = filepath.Base(appPath)
+	appName, _ = utils.GetCgearAppName(appPath)
 }
 
 func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) error {
