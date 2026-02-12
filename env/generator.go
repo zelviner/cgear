@@ -13,8 +13,6 @@ func SetGenerator() {
 		"Visual Studio 17 2022",
 	}
 
-	logger.Log.Info("")
-
 	generator, cancelled, err := ui.ListOption("Please select a generator:", generators, func(g string) string { return g })
 	if err != nil {
 		logger.Log.Errorf("Failed to select generator: %v", err)

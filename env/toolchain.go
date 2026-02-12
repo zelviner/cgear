@@ -77,6 +77,9 @@ func findToolchains() (Toolchains []*config.Toolchain, err error) {
 
 				case "Mingw":
 					compiler = Compiler{key, filepath.Join(path, "gcc.exe"), compilerPath}
+
+				default:
+					continue
 				}
 
 				Toolchain, err := getToolchain(compiler)
