@@ -1,5 +1,5 @@
 #define MyAppName "cgear"
-#define MyAppVersion "2.0.0"
+#define MyAppVersion "2.1.0"
 #define MyAppExeName "cgear.exe"
 #define NinjaVersion "1.12.1"
 #define VcpkgRef "2026.06.01"
