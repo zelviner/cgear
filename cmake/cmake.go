@@ -21,7 +21,6 @@ type ConfigArg struct {
 	BuildType             string            // 构建类型
 	ProjectPath           string            // 源代码路径
 	BuildPath             string            // 构建目录
-	CXXFlags              string            // C++ 编译参数
 	NoWarnUnusedCli       bool              // 不警告在命令行声明但未使用的变量
 	ExportCompileCommands bool              // 导出编译命令
 }
@@ -60,10 +59,9 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) 
 		dllPath = filepath.Join(cgearHome, "installed", "x64-windows")
 	}
 
-	switch config.Conf.BuildType {
-	case "Debug":
+	if config.Conf.BuildType == "Debug" {
 		dllPath = filepath.Join(dllPath, "debug", "bin")
-	case "Release":
+	} else {
 		dllPath = filepath.Join(dllPath, "bin")
 	}
 
@@ -96,11 +94,20 @@ func Run(configArg *ConfigArg, buildArg *BuildArg, target string, rebuild bool) 
 }
 
 func Build(configArg *ConfigArg, buildArg *BuildArg, rebuild bool, showInfo bool) error {
+	if configArg == nil || buildArg == nil {
+		return fmt.Errorf("cmake arguments must not be nil")
+	}
+
 	// 初始化 Toolchain
 	if configArg.Toolchain == nil {
 		env.SetToolchain()
 		configArg.Toolchain = config.Conf.Toolchain
 	}
+	if configArg.Toolchain == nil {
+		return fmt.Errorf("no toolchain selected")
+	}
+	buildArg.IsMSVC = configArg.Toolchain.IsMSVC
+	buildArg.BuildType = configArg.BuildType
 
 	// 清理旧的 build 目录（如果需要重建）
 	if rebuild {
@@ -182,11 +189,8 @@ func (c *ConfigArg) toStringSlice() []string {
 		result = append(result, "-DCMAKE_TOOLCHAIN_FILE="+toolchainFile)
 	}
 
-	switch c.BuildType {
-	case "Debug":
-		result = append(result, "-DCMAKE_BUILD_TYPE=Debug")
-	case "Release":
-		result = append(result, "-DCMAKE_BUILD_TYPE=Release")
+	if c.BuildType != "" {
+		result = append(result, "-DCMAKE_BUILD_TYPE="+c.BuildType)
 	}
 
 	if c.NoWarnUnusedCli {
@@ -219,16 +223,10 @@ func (b *BuildArg) toStringSlice() []string {
 		result = append(result, b.BuildType)
 	}
 
-	if !b.IsMSVC && b.Target != "" {
+	if b.Target != "" {
 		result = append(result, "--target")
-		if len(b.Target) != 0 {
-			result = append(result, b.Target)
-		} else {
-			result = append(result, "all")
-		}
+		result = append(result, b.Target)
 	}
-
-	result = append(result, "--")
 
 	return result
 }

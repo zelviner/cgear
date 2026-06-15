@@ -16,16 +16,13 @@ import (
 // 检查文件是否存在
 func IsExist(path string) bool {
 	_, err := os.Stat(path)
-	return err == nil || os.IsExist(err)
+	return err == nil
 }
 
 // 创建文件夹（如果文件夹不存在则创建）
 func MakeDir(dir string) error {
 	if !IsExist(dir) {
-		if err := os.MkdirAll(dir, 0777); err != nil { //os.ModePerm
-			fmt.Println("MakeDir failed:", err)
-			return err
-		}
+		return os.MkdirAll(dir, 0755)
 	}
 	return nil
 }
@@ -38,12 +35,13 @@ func CopyFile(src, des string) (written int64, err error) {
 	}
 	defer CloseFile(srcFile)
 
-	//获取源文件的权限
-	fi, _ := srcFile.Stat()
+	fi, err := srcFile.Stat()
+	if err != nil {
+		return 0, err
+	}
 	perm := fi.Mode()
 
-	//desFile, err := os.Create(des)  //无法复制源文件的所有权限
-	desFile, err := os.OpenFile(des, os.O_RDWR|os.O_CREATE, perm) //复制源文件的所有权限
+	desFile, err := os.OpenFile(des, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		return 0, err
 	}
@@ -63,14 +61,15 @@ func CopyDir(srcPath, desPath string) error {
 		}
 	}
 
-	MakeDir(desPath)
-
 	if strings.TrimSpace(srcPath) == strings.TrimSpace(desPath) {
 		return errors.New("源路径与目标路径不能相同！")
 	}
+	if err := MakeDir(desPath); err != nil {
+		return err
+	}
 
 	err := filepath.Walk(srcPath, func(path string, f os.FileInfo, err error) error {
-		if f == nil {
+		if err != nil {
 			return err
 		}
 
@@ -79,15 +78,18 @@ func CopyDir(srcPath, desPath string) error {
 			return nil
 		}
 
-		//生成新路径
-		destNewPath := strings.Replace(path, srcPath, desPath, -1)
+		relPath, err := filepath.Rel(srcPath, path)
+		if err != nil {
+			return err
+		}
+		destNewPath := filepath.Join(desPath, relPath)
 
 		if !f.IsDir() {
-			CopyFile(path, destNewPath)
-		} else {
-			if !IsExist(destNewPath) {
-				return MakeDir(destNewPath)
-			}
+			_, err := CopyFile(path, destNewPath)
+			return err
+		}
+		if !IsExist(destNewPath) {
+			return MakeDir(destNewPath)
 		}
 
 		return nil
@@ -98,20 +100,7 @@ func CopyDir(srcPath, desPath string) error {
 
 // 创建文件并向其中写入内容
 func WriteToFile(filename string, content string) {
-	var (
-		file *os.File
-		err  error
-	)
-	if !IsExist(filename) {
-		file, err = os.Create(filename)
-	} else {
-		file, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
-	}
-	MustCheck(err)
-	defer CloseFile(file)
-
-	_, err = file.WriteString(content)
-	MustCheck(err)
+	MustCheck(os.WriteFile(filename, []byte(content), 0644))
 }
 
 func ReadFile(filename string) string {
@@ -171,10 +160,8 @@ func ReplaceFileContent(filename string, old string, new string) error {
 		return err
 	}
 
-	content := strings.Replace(string(bytes), old, new, -1)
-	WriteToFile(filename, content)
-
-	return err
+	content := strings.ReplaceAll(string(bytes), old, new)
+	return os.WriteFile(filename, []byte(content), 0644)
 }
 
 // ZipFile compresses the specified source directory and saves the result as a zip file at the destination path.
@@ -188,7 +175,6 @@ func ZipFile(src, dst string) error {
 
 	// Create a new zip archive.
 	zipWriter := zip.NewWriter(zipFile)
-	defer zipWriter.Close()
 
 	// Walk through the source directory and add files to the zip archive.
 	err = filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
@@ -226,11 +212,14 @@ func ZipFile(src, dst string) error {
 			if err != nil {
 				return err
 			}
-			defer file.Close()
 
-			_, err = io.Copy(writer, file)
-			if err != nil {
-				return err
+			_, copyErr := io.Copy(writer, file)
+			closeErr := file.Close()
+			if copyErr != nil {
+				return copyErr
+			}
+			if closeErr != nil {
+				return closeErr
 			}
 		}
 
@@ -238,7 +227,12 @@ func ZipFile(src, dst string) error {
 	})
 
 	if err != nil {
+		_ = zipWriter.Close()
 		return fmt.Errorf("failed to walk through source directory: %w", err)
+	}
+
+	if err := zipWriter.Close(); err != nil {
+		return fmt.Errorf("failed to close zip file: %w", err)
 	}
 
 	return nil

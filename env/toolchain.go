@@ -23,7 +23,7 @@ type Compiler struct {
 
 var compilerTypes = map[string]string{
 	"Clang":    "clang++.exe",
-	"Clang-cl": "clang-cpp.exe",
+	"Clang-cl": "clang-cl.exe",
 	"Mingw":    "g++.exe",
 }
 
@@ -45,11 +45,6 @@ func SetToolchain() {
 	}
 
 	config.Conf.Toolchain = selected
-	if strings.Contains(selected.Compiler.C, "v14") {
-		config.Conf.Toolchain.IsMSVC = true
-	} else {
-		config.Conf.Toolchain.IsMSVC = false
-	}
 
 	logger.Log.Successf("Toolchain set to: %s", selected.Name)
 }
@@ -59,8 +54,7 @@ func findToolchains() (Toolchains []*config.Toolchain, err error) {
 	// 查看环境变量中的路径
 	pathEnv := os.Getenv("PATH")
 
-	// 将路径字符串按分号分割成切片
-	paths := strings.Split(pathEnv, ";")
+	paths := filepath.SplitList(pathEnv)
 
 	// 在环境变量中搜索 C++ 编译器
 	for _, path := range paths {
@@ -82,12 +76,12 @@ func findToolchains() (Toolchains []*config.Toolchain, err error) {
 					continue
 				}
 
-				Toolchain, err := getToolchain(compiler)
+				toolchain, err := getToolchain(compiler)
 				if err != nil {
-					logger.Log.Error(err.Error())
+					continue
 				}
 
-				Toolchains = append(Toolchains, Toolchain)
+				Toolchains = append(Toolchains, toolchain)
 			}
 		}
 	}
@@ -95,13 +89,15 @@ func findToolchains() (Toolchains []*config.Toolchain, err error) {
 	// 查找 MSVC 编译器
 	toolchains, err := findMSVCCompiler()
 	if err != nil {
-		logger.Log.Error(err.Error())
-		return nil, err
+		logger.Log.Warn(err.Error())
+	} else {
+		Toolchains = append(Toolchains, toolchains...)
 	}
 
-	for _, toolchain := range toolchains {
-		Toolchains = append(Toolchains, toolchain)
+	if len(Toolchains) == 0 {
+		return nil, fmt.Errorf("no supported C/C++ toolchain found")
 	}
+	sort.Slice(Toolchains, func(i, j int) bool { return Toolchains[i].Name < Toolchains[j].Name })
 
 	return Toolchains, nil
 
@@ -126,7 +122,7 @@ func getToolchain(compiler Compiler) (*config.Toolchain, error) {
 	switch compiler.Name {
 	case "Clang":
 		{
-			regExpStr = `\s*clang version (\d+.\d+.\d+)\s*Target: ([^\s]+)\s*`
+			regExpStr = `\s*clang version (\d+\.\d+\.\d+)\s*Target: ([^\s]+)\s*`
 			re := regexp.MustCompile(regExpStr)
 
 			// 输出提取的信息
@@ -145,7 +141,7 @@ func getToolchain(compiler Compiler) (*config.Toolchain, error) {
 
 	case "Clang-cl":
 		{
-			regExpStr = `\s*clang version (\d+.\d+.\d+)\s*Target: ([^\s]+)\s*`
+			regExpStr = `\s*clang version (\d+\.\d+\.\d+)\s*Target: ([^\s]+)\s*`
 			re := regexp.MustCompile(regExpStr)
 
 			// 输出提取的信息
@@ -164,7 +160,7 @@ func getToolchain(compiler Compiler) (*config.Toolchain, error) {
 
 	case "Mingw":
 		{
-			regExpStr = `(?s)Target:\s*([^\s]+).*gcc version (\d+.\d+.\d+)`
+			regExpStr = `(?s)Target:\s*([^\s]+).*gcc version (\d+\.\d+\.\d+)`
 			re := regexp.MustCompile(regExpStr)
 
 			// 输出提取的信息
@@ -207,7 +203,7 @@ func findMSVCCompiler() (toolchains []*config.Toolchain, err error) {
 		return nil, err
 	}
 
-	for vsName, _ := range version {
+	for vsName := range version {
 		if vsName == "Visual Studio Community 2022" {
 			// tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release - amd64", filepath.Join(vsPath, "VC", "Tools", "MSVC", latest, "bin", "Hostx64", "x64", "cl.exe"))
 			// tryAddToolchain(&toolchains, "Visual Studio Community 2022 Release - amd64_86", filepath.Join(vsPath, "VC", "Tools", "MSVC", latest, "bin", "Hostx64", "x86", "cl.exe"))
@@ -230,7 +226,8 @@ func findMSVCCompiler() (toolchains []*config.Toolchain, err error) {
 func tryAddToolchain(toolchains *[]*config.Toolchain, name, clPath string) {
 	if _, err := os.Stat(clPath); err == nil {
 		*toolchains = append(*toolchains, &config.Toolchain{
-			Name: name,
+			Name:   name,
+			IsMSVC: true,
 			Compiler: config.Compiler{
 				C:   clPath,
 				CXX: clPath,
@@ -239,7 +236,8 @@ func tryAddToolchain(toolchains *[]*config.Toolchain, name, clPath string) {
 	} else {
 		if strings.Contains(name, "Visual Studio") {
 			*toolchains = append(*toolchains, &config.Toolchain{
-				Name: name,
+				Name:   name,
+				IsMSVC: true,
 				Compiler: config.Compiler{
 					C:   clPath,
 					CXX: clPath,
@@ -266,13 +264,13 @@ func getMSVCVersion(vsPath string) (map[string]string, error) {
 	var vs2019Versions []string
 	var vs2022Versions []string
 	for _, entry := range entries {
-		if entry.IsDir() {
+		if entry.IsDir() && len(entry.Name()) >= 4 {
 			switch entry.Name()[:4] {
 
 			case "14.2":
 				vs2019Versions = append(vs2019Versions, entry.Name())
 
-			case "14.4":
+			case "14.3", "14.4":
 				vs2022Versions = append(vs2022Versions, entry.Name())
 
 			}

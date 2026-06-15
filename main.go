@@ -43,7 +43,7 @@ func main() {
 				c.PreRun(c, args)
 			}
 
-			config.LaodConfig()
+			config.LoadConfig()
 			os.Exit(c.Run(c, args))
 			return
 		}

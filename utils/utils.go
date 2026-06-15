@@ -11,23 +11,12 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/zelviner/cgear/logger"
 	"github.com/zelviner/cgear/logger/colors"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
-
-type Repos struct {
-	UpdatedAt time.Time `json:"updatad_at"`
-	PushedAt  time.Time `json:"pushed_at"`
-}
-
-type Releases struct {
-	PublishedAt time.Time `json:"published_at"`
-	TagName     time.Time `json:"tag_name"`
-}
 
 // GetCgearWorkPath 获取当前工作目录的路径
 func GetCgearWorkPath() string {
@@ -98,27 +87,14 @@ func GetCgearInstalledPath() string {
 
 // 检查当前路径是否为 Cgear tool 生成的 C++ 项目
 func IsCgearProject(thePath string) bool {
-	cmakeListsFiles := []string{
-		thePath + `\CMakeLists.txt`,
-		thePath + `\src\CMakeLists.txt`,
-		thePath + `\test\CMakeLists.txt`,
+	requiredFiles := []string{
+		filepath.Join(thePath, "CMakeLists.txt"),
+		filepath.Join(thePath, "src", "CMakeLists.txt"),
+		filepath.Join(thePath, "test", "CMakeLists.txt"),
 	}
-	var files string
-
-	filepath.Walk(thePath, func(fpath string, f os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if f.Name() == "CMakeLists.txt" {
-			files += fpath + ","
-		}
-
-		return nil
-	})
-
-	for _, file := range cmakeListsFiles {
-		if ok := strings.Index(files, file); ok == -1 {
+	for _, file := range requiredFiles {
+		info, err := os.Stat(file)
+		if err != nil || info.IsDir() {
 			return false
 		}
 	}
@@ -195,10 +171,6 @@ func Tmpl(text string, data interface{}) {
 	}
 }
 
-func CheckEnv(appname string) (apppath string, packpath string, err error) {
-	return
-}
-
 // 当错误不为nil时，MustCheck会出现异常
 func MustCheck(err error) {
 	if err != nil {
@@ -210,77 +182,6 @@ func PrintErrorAndExit(message string, errorTemplate string) {
 	Tmpl(fmt.Sprintf(errorTemplate, message), nil)
 	os.Exit(2)
 }
-
-// func ZelReleasesInfo() (repos []Releases) {
-// 	var url = "https://api.github.com/repos/beego/bee/releases"
-// 	resp, err := http.Get(url)
-// 	if err != nil {
-// 		logger.Log.Warnf("Get Zel releases from github error : %s", err)
-// 		return
-// 	}
-
-// 	defer resp.Body.Close()
-// 	bodyContent, _ := io.ReadAll(resp.Body)
-// 	if err := json.Unmarshal(bodyContent, &repos); err != nil {
-// 		logger.Log.Warnf("Unmarshal releases body error: %s", err)
-// 		return
-// 	}
-
-// 	return
-// }
-
-// func UpdateLastPublishedTime() {
-// 	info := ZelReleasesInfo()
-// 	if len(info) == 0 {
-// 		logger.Log.Warn("Has no releases")
-// 		return
-// 	}
-// 	createdAt := info[0].PublishedAt.Format("2006-01-02")
-// 	zelHome := system.ZelHome
-// 	if !IsExist(zelHome) {
-// 		if err := os.MkdirAll(zelHome, 0755); err != nil {
-// 			logger.Log.Fatalf("Could not create the directory: %s", err)
-// 			return
-// 		}
-// 	}
-
-// 	fp := zelHome + "/.lastPublishedAt"
-// 	w, err := os.OpenFile(fp, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
-// 	if err != nil {
-// 		logger.Log.Warnf("Open .lastPublishedAt file err: %s", err)
-// 		return
-// 	}
-// 	defer w.Close()
-
-// 	if _, err := w.WriteString(createdAt); err != nil {
-// 		logger.Log.Warnf("Update .lastPublishedAt file err: %s", err)
-// 		return
-// 	}
-
-// }
-
-// func GetLastPublishedTime() string {
-// 	fp := system.ZelHome + "/.lastPublishedAt"
-// 	if !IsExist(fp) {
-// 		UpdateLastPublishedTime()
-// 	}
-
-// 	w, err := os.OpenFile(fp, os.O_RDONLY, 0644)
-// 	if err != nil {
-// 		logger.Log.Warnf("Open .lastPublishedAt file err: %s", err)
-// 		return "unknown"
-// 	}
-// 	defer w.Close()
-
-// 	t := make([]byte, 1024)
-// 	read, err := w.Read(t)
-// 	if err != nil {
-// 		logger.Log.Warnf("read .lastPulishedAt file err: %s", err)
-// 		return "unknown"
-// 	}
-
-// 	return string(t[:read])
-// }
 
 func CapitalizeFirstLetter(word string) string {
 	var capFirstLetter string

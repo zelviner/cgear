@@ -36,10 +36,8 @@ var (
 	vendorPath     string
 	vendorInfo     string
 	repositoryName string
-
-	cgearHome      = utils.GetCgearHomePath()
-	cgearPkg       = utils.GetCgearPkgPath()
-	cgearInstalled = utils.GetCgearInstalledPath()
+	cgearPkg       string
+	cgearInstalled string
 )
 
 func init() {
@@ -47,6 +45,8 @@ func init() {
 }
 
 func install(cmd *commands.Command, args []string) int {
+	cgearPkg = utils.GetCgearPkgPath()
+	cgearInstalled = utils.GetCgearInstalledPath()
 
 	switch len(args) {
 	case 0:
@@ -141,7 +141,6 @@ func compileInstall(showInfo bool) error {
 		ExportCompileCommands: true,
 		ProjectPath:           vendorPath,
 		BuildPath:             buildPath,
-		CXXFlags:              "-D_MD",
 	}
 
 	buildArg := cmake.BuildArg{
@@ -235,7 +234,7 @@ func selectArch() string {
 	p := tea.NewProgram(newArchModel())
 	m, err := p.Run()
 	if err != nil {
-		logger.Log.Fatalf("选择架构失败:", err)
+		logger.Log.Fatalf("选择架构失败: %v", err)
 	}
 
 	if model, ok := m.(archModel); ok && model.choice != "" {
@@ -272,12 +271,18 @@ func releaseInstall() {
 
 	// 拷贝 vendorInfo 下的 include 和 lib 目录到 releasePath 下
 	releasePath := filepath.Join(cgearInstalled, archDir)
-	utils.CopyDir(includePath, filepath.Join(releasePath, "include", repositoryName))
-	utils.CopyDir(libPath, filepath.Join(releasePath, "lib", repositoryName))
+	if err := utils.CopyDir(includePath, filepath.Join(releasePath, "include", repositoryName)); err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+	if err := utils.CopyDir(libPath, filepath.Join(releasePath, "lib", repositoryName)); err != nil {
+		logger.Log.Fatal(err.Error())
+	}
 
 	// 拷贝 vendorInfo 下的 include 和 lib 目录到 debugPath 下
 	debugPath := filepath.Join(releasePath, "debug")
-	utils.CopyDir(libPath, filepath.Join(debugPath, "lib", repositoryName))
+	if err := utils.CopyDir(libPath, filepath.Join(debugPath, "lib", repositoryName)); err != nil {
+		logger.Log.Fatal(err.Error())
+	}
 
 	logger.Log.Successf("Successfully installed '%s'", repositoryName)
 }

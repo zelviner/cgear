@@ -15,19 +15,6 @@ import (
 	"github.com/zelviner/cgear/utils"
 )
 
-func IfGenerateDocs(name string, args []string) bool {
-	if name != "generate" {
-		return false
-	}
-
-	for _, arg := range args {
-		if arg == "docs" {
-			return true
-		}
-	}
-	return false
-}
-
 var usageTemplate = `Cgear is a Fast tool for managing your C++ Project.
 
 {{"USAGE" | headline}}

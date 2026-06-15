@@ -44,7 +44,8 @@ var CmdVersion = &commands.Command{
 	UsageLine: "version",
 	Short:     "Prints the current Cgear version",
 	Long: `
-Prints the current Bee, Beego and Go version alongside the platform information.
+Prints the current Cgear version and Go runtime information.
+Use -o json or -o yaml for machine-readable output.
 `,
 	Run: versionCmd,
 }

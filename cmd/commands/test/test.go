@@ -18,10 +18,11 @@ import (
 )
 
 var CmdTest = &commands.Command{
-	UsageLine: "test [appname] [watchall] [-main=*.go] [-downdoc=true]  [-gendoc=true] [-vendor=true] [-e=folderToExclude] [-ex=extraPackageToWatch] [-tags=goBuildTags] [-runmode=BEEGO_RUNMODE]",
-	Short:     "Test the application by starting a local development server",
+	UsageLine: "test [suite[.case]] [-r]",
+	Short:     "List or run GoogleTest cases",
 	Long: `
-Run command will supervise the filesystem of the application for any changes, and recompile/restart it.
+Without arguments, lists tests from executables under bin/test.
+With a suite or suite.case argument, builds the project and runs the matching GoogleTest filter.
 	`,
 	PreRun: func(cmd *commands.Command, args []string) {},
 	Run:    RunTest,
@@ -93,7 +94,7 @@ func showTest() {
 
 				case strings.HasPrefix(testInfo, "Running"):
 
-				case strings.Index(testInfo, ".") != -1:
+				case strings.Contains(testInfo, "."):
 					testInfo = colors.RedBold(testInfo[:len(testInfo)-2])
 					fmt.Println(`    ├── ` + testInfo)
 
@@ -135,13 +136,11 @@ func runTest(testName string) {
 		ExportCompileCommands: true,
 		ProjectPath:           appPath,
 		BuildPath:             buildPath,
-		CXXFlags:              "-D_MD",
 	}
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
 		BuildType: config.Conf.BuildType,
-		IsMSVC:    config.Conf.Toolchain.IsMSVC,
 	}
 
 	// 设置临时环境变量
@@ -202,10 +201,9 @@ func getDllPath() string {
 		dllPath = filepath.Join(cgearHome, "installed", "x64-windows")
 	}
 
-	switch config.Conf.BuildType {
-	case "Debug":
+	if config.Conf.BuildType == "Debug" {
 		dllPath = filepath.Join(dllPath, "debug", "bin")
-	case "Release":
+	} else {
 		dllPath = filepath.Join(dllPath, "bin")
 	}
 	return dllPath

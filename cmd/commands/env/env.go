@@ -39,6 +39,11 @@ var CmdEnv = &commands.Command{
 
      $ cgear env BuildType
 
+  ▶ {{"Other settings:"|bold}}
+
+     $ cgear env Generator
+     $ cgear env Platform
+
 `,
 	Run: SetEnv,
 }

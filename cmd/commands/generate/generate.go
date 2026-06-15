@@ -17,50 +17,17 @@ import (
 
 var CmdGenerate = &commands.Command{
 	UsageLine: "generate [command]",
-	Short:     "Source code generator",
-	Long: `▶ {{"To scaffold out your entire application:"|bold}}
+	Short:     "Generate project files or documentation",
+	Long: `Creates an include directory or generates source.docx from the current project.
 
-     $ bee generate scaffold [scaffoldname] [-fields="title:string,body:text"] [-driver=mysql] [-conn="root:@tcp(127.0.0.1:3306)/test"]
-
-  ▶ {{"To generate a Model based on fields:"|bold}}
-
-     $ bee generate model [modelname] [-fields="name:type"]
-
-  ▶ {{"To generate a controller:"|bold}}
-
-     $ bee generate controller [controllerfile]
-
-  ▶ {{"To generate a CRUD view:"|bold}}
-
-     $ bee generate view [viewpath]
-
-  ▶ {{"To generate a migration file for making database schema updates:"|bold}}
-
-     $ bee generate migration [migrationfile] [-fields="name:type"]
-
-  ▶ {{"To generate swagger doc file:"|bold}}
-
-     $ bee generate docs
-
-    ▶ {{"To generate swagger doc file:"|bold}}
-
-     $ bee generate routers [-ctrlDir=/path/to/controller/directory] [-routersFile=/path/to/routers/file.go] [-routersPkg=myPackage]
-
-  ▶ {{"To generate a test case:"|bold}}
-
-     $ bee generate test [routerfile]
-
-  ▶ {{"To generate appcode based on an existing database:"|bold}}
-
-     $ bee generate appcode [-tables=""] [-driver=mysql] [-conn="root:@tcp(127.0.0.1:3306)/test"] [-level=3]
+     $ cgear generate include
+     $ cgear generate docs
 	`,
 	PreRun: func(cmd *commands.Command, args []string) { version.ShowShortVersionBanner() },
 	Run:    GenerateCode,
 }
 
 func init() {
-	CmdGenerate.Flag.Var(&generate.Include, "test", "Generate C++ project header folder.")
-
 	commands.AvailableCommands = append(commands.AvailableCommands, CmdGenerate)
 }
 

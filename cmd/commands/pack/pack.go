@@ -19,10 +19,11 @@ var CmdPack = &commands.Command{
 	UsageLine: "pack",
 	Short:     "Compresses a C++ project into a single file",
 	Long: `Pack is used to compress C++ project into a tarball/zip file.
-  This eases the deployment by directly extracting the file to a server.
+  It builds Release, collects the application and DLL files, and creates a zip under bin/release.
+  Qt projects additionally require windeployqt on PATH.
  
   {{"Example:"|bold}}
-    $ cgear pack -v -ba="-ldflags '-s -w'" 
+    $ cgear pack
 `,
 	PreRun: func(cmd *commands.Command, args []string) {},
 	Run:    packProject,
@@ -80,6 +81,9 @@ func packProject(cmd *commands.Command, args []string) int {
 		if err != nil {
 			return err
 		}
+		if path == desPath {
+			return filepath.SkipDir
+		}
 
 		if filepath.Ext(path) == ".exe" || filepath.Ext(path) == ".dll" {
 			if info.Name() == projectName+".exe" {
@@ -105,10 +109,11 @@ func packProject(cmd *commands.Command, args []string) int {
 		logger.Log.Fatal(err.Error())
 	}
 
-	// QT 打包
-	err = pack(des)
-	if err != nil {
-		logger.Log.Fatal(err.Error())
+	if config.Conf.ProjectType == "QT Application" {
+		err = pack(des)
+		if err != nil {
+			logger.Log.Fatal(err.Error())
+		}
 	}
 
 	// 运行时依赖
@@ -150,13 +155,11 @@ func build() {
 		ExportCompileCommands: true,
 		ProjectPath:           projectPath,
 		BuildPath:             buildPath,
-		CXXFlags:              "-D_MD",
 	}
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
-		BuildType: config.Conf.BuildType,
-		IsMSVC:    config.Conf.Toolchain.IsMSVC,
+		BuildType: "Release",
 	}
 
 	err := cmake.Build(&configArg, &buildArg, true, false)

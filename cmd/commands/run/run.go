@@ -6,14 +6,16 @@ import (
 	"github.com/zelviner/cgear/cmake"
 	"github.com/zelviner/cgear/cmd/commands"
 	"github.com/zelviner/cgear/config"
+	"github.com/zelviner/cgear/logger"
 	"github.com/zelviner/cgear/utils"
 )
 
 var CmdRun = &commands.Command{
-	UsageLine: "run [appname]",
+	UsageLine: "run [-r]",
 	Short:     "Run the application",
 	Long: `
-Run command will supervise the filesystem of the application for any changes, and recompile/restart it.
+Builds the current project and runs the executable named by CMake project().
+Use -r to remove the build directory before building.
 
 `,
 	PreRun: nil,
@@ -34,7 +36,12 @@ func init() {
 func RunApp(cmd *commands.Command, args []string) int {
 
 	projectPath := utils.GetCgearWorkPath()
-	appName, _ = utils.GetCgearAppName(projectPath)
+	var err error
+	appName, err = utils.GetCgearAppName(projectPath)
+	if err != nil {
+		logger.Log.Error(err.Error())
+		return 1
+	}
 
 	buildPath := filepath.Join(projectPath, "build")
 
@@ -47,16 +54,16 @@ func RunApp(cmd *commands.Command, args []string) int {
 		ExportCompileCommands: true,
 		ProjectPath:           projectPath,
 		BuildPath:             buildPath,
-		CXXFlags:              "-D_MD",
 	}
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
 		BuildType: config.Conf.BuildType,
-		IsMSVC:    config.Conf.Toolchain.IsMSVC,
 	}
 
-	cmake.Run(&configArg, &buildArg, appName, rebuild)
+	if err = cmake.Run(&configArg, &buildArg, appName, rebuild); err != nil {
+		return 1
+	}
 
 	return 0
 }

@@ -14,7 +14,8 @@ var CmdBuild = &commands.Command{
 	UsageLine: "build [target] [-r]",
 	Short:     "Compile the application",
 	Long: `
-Build command will supervise the filesystem of the application for any changes, and recompile/restart it.
+Configures the current Cgear project with CMake and builds it.
+Use -t to build a specific target and -r to remove the build directory first.
 
 `,
 	Run: BuildApp,
@@ -23,7 +24,6 @@ Build command will supervise the filesystem of the application for any changes, 
 var (
 	rebuild   bool   // 是否重新构建
 	target    string // 构建类型
-	appPath   string // 应用程序路径
 	buildPath string // 构建路径
 )
 
@@ -47,14 +47,12 @@ func BuildApp(cmd *commands.Command, args []string) int {
 		ExportCompileCommands: true,
 		ProjectPath:           appPath,
 		BuildPath:             buildPath,
-		CXXFlags:              "-D_MD",
 	}
 
 	buildArg := cmake.BuildArg{
 		BuildPath: buildPath,
 		Target:    target,
 		BuildType: config.Conf.BuildType,
-		IsMSVC:    config.Conf.Toolchain.IsMSVC,
 	}
 
 	err := cmake.Build(&configArg, &buildArg, rebuild, true)

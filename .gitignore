@@ -33,3 +33,6 @@ bee
 vendor
 
 bin
+
+.readme-cache
+.staticcheck-cache
