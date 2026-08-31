@@ -85,7 +85,13 @@ func packProject(cmd *commands.Command, args []string) int {
 			return filepath.SkipDir
 		}
 
-		if filepath.Ext(path) == ".exe" || filepath.Ext(path) == ".dll" {
+		// 将路径下的ossl-modules文件夹复制到desPath下
+		if strings.Contains(path, "ossl-modules") && info.IsDir() {
+			err := utils.CopyDir(path, filepath.Join(desPath, "ossl-modules"))
+			if err != nil {
+				return err
+			}
+		} else if filepath.Ext(path) == ".exe" || filepath.Ext(path) == ".dll" {
 			if info.Name() == projectName+".exe" {
 				_, err := utils.CopyFile(path, des)
 				if err != nil {
